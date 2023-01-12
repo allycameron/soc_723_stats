@@ -1,6 +1,8 @@
 ---
 title: "HW 2"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 date: "2023-01-12"
 ---
 
@@ -54,12 +56,12 @@ tidy(parallel_model)
 $$-306.72 + 6.32 * 0 + 5.76 * 0 + 5.52 * 0 + 4.91 * 0 -1.31 * 0 + 3.33 * 1 + 6.08 * 0 + 0.19 * 2015 = 79.46$$\
 (I am confused here because I don't know how to convert this number I got into a percentage (like I did above) or if I should have converted something else before?) ALSO, I decided to use the actual year in the year category because in question 3 they replace year with the actual year.\
 
-MY INTERPRETATION: Sales and Office Occupations male's income  will increase by 2015 79.461% more than Management, Business, and Financial. \
+MY INTERPRETATION: Sales and Office Occupations male's income  will increase by 2015 79.461 more than Management, Business, and Financial. (Not sure if the reference category needs to be mentioned with the interpretation)\
 *2. Calculate the wage percentage of male income for Service occupations in 2016.*\
 
 $$-306.72 + 6.32 * 0 + 5.76 * 0 + 5.52 * 0 + 4.91 * 0 -1.31 * 0 + 3.33 * 0 + 6.08 * 1 + 0.19 * 2016 =  82.4$$ \
 
-MY INTERPRETATION: Service male's income  will increase by 2016 82.4% more than Management, Business, and Financial. \
+MY INTERPRETATION: Service male's income  will increase by 2016 82.4 more than Management, Business, and Financial. \
 
 # Question 2\
 ```{r}
