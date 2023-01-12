@@ -1,0 +1,187 @@
+---
+title: "HW 3"
+output:
+  pdf_document: default
+  html_document: default
+date: "2023-01-12"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(moderndive)
+theme_set(theme_minimal())
+
+# now let's load the data from the bayesrules packages
+data(bikes, package = "bayesrules")
+glimpse(bikes)
+bikes <- tibble(bikes)
+```
+# Question 0\
+*1. How many rows are in the dataset?* \
+There are 500 rows\
+*2.What does each row represent?* \
+Each row represents a case\
+*3.What dates does the dataset cover?*\
+```{r}
+sort(bikes$date)
+```
+
+The data set covers from 2011-01-01 to 2012-12-31.\
+*4. What is the highest observed ridership in the dataset?*\
+
+```{r}
+max(bikes$rides)
+```
+6946 rides\
+
+*5. What was the highest wind speed recorded in the dataset*\
+```{r}
+max(bikes$windspeed)
+```
+34.00002\
+
+# Question 1\
+*What is the correlation between number of rides and what the temperature feels like (in Fahrenheit)? What is the correlation between the number of rides and wind speed (miles per hour)?*\
+
+```{r}
+library(boot)
+corr(bikes %>% select(temp_feel, rides))
+corr(bikes %>% select(rides, windspeed))
+```
+There is a strong, positive correlation (0.58) between rides and the temperature feels like (in Fahrenheit).There is a weak, negative correlation (-0.19) between number of rides and wind speed (miles per hour).\
+
+# Question 2\
+*Using the approximation that a mile is equal to 1.61 kilometers, convert wind speed to kilometers per hour. Call the new variable wind_kph and add it to the bikes data frame. What is the correlation between wind speed in MPH and wind speed in KPH? Explain why in enough detail that I know you understand.*\
+
+```{r}
+bikes <- bikes %>% 
+  mutate(wind_kph = windspeed * 1.61)
+
+corr(bikes %>% select(wind_kph, windspeed))
+
+```
+
+The correlation is 1, meaning there is a perfect correlation. The valued are related in an identical manner (perfectly) because the values for each are the same just converted to different units (for example, when you have 1 mile its perfectly correlated to 1.61 km because this is the same distance just represented differently).\
+
+# Question 3\
+Estimate two simple regressions.\
+
+```{r}
+# regression where windspeed mph predicts rides
+mph_fit <- lm(rides ~ windspeed, data = bikes)
+
+# regression where windspeed km predicts rides
+kph_fit <- lm(rides ~ wind_kph, data = bikes)
+```
+
+Use `get_regression_table()` or `broom::tidy()` to disply the results. f any coefficients are the same between models, explain why. If any coefficients are different between models, explain why. Make sure to give me enough detail to convince me you understand.\
+
+```{r}
+library(broom)
+tidy(mph_fit)
+
+```
+
+```{r}
+tidy(kph_fit)
+```
+The intercept and the estimate is the same for both models. This is because the only change in the model is the units, which has no effect on the rate of change or the intercept. This is because the change that occurred is perfectly correlated. When ran through the regression equation it will lead to the same results regardless of the changed numerical input, because they are proportional to each other. \
+
+# Question 4\
+*Using the models from above, tell me what the predicted ridership would be if the wind is blowing at 20 KPH. What would the predicted ridership be if the wind is blowing at 20 MPH?*\
+
+1. kph\
+$$4205. 06 - 34.49*20$$\
+The predicted ridership would be 3515.26.\
+2. mph\
+$$4205. 06 - 34.49*20$$\
+The predicted ridership would also be 3515.26.\
+
+# Question 5\
+
+Now we're going to move to multiple regression. We will add in `temp_feel` to our model, converted to Celsius.\
+
+
+```{r}
+# first I will convert Fahrenheit to Celsius
+bikes <- bikes %>% 
+  mutate(temp_c = temp_feel*5/9)
+
+# now, create the model (additive)
+kph_c_fit <- lm(rides ~ wind_kph + temp_c, data = bikes)
+tidy(kph_c_fit)
+
+```
+
+INTERPRETATIONS. \
+
+1. For a 1 degree increase in temperature, the model expects a 143.23 increase in ridership. \
+2. For a 1 kph increase in wind speed, the model expects a 19.84 decrease in ridership. \
+3. intercept interpretation: When temperature is at 0 degrees and there is 0 wind, the ridership is -1603.96.\
+
+# Question 6\
+
+Ridership predictions\
+1. $$-1603.96 -19.84 * 15 + 143.23 * 25$$\
+1679.19 rides.\
+2. $$-1603.96 -19.84 * 5 + 143.23 * 15$$\
+445.29 rides\
+3. $$-1603.96 -19.84 * 40 + 143.23 * 10$$\
+The last one is more tricky I think. The answer is -965.26, but since this is a real-world example. I would say that this means there would be 0 rides.\
+
+# Question 7\
+*Let's add another predictor into the mix. Estimate a new model that uses weekend in addition to the predictors already in the model. Display the model results. Interpret the coefficient on weekend using a complete sentence.*
+
+```{r}
+# add in another predictor, weekend
+
+complex_fit <- lm(rides ~ wind_kph + temp_c + weekend, data = bikes)
+tidy(complex_fit)
+```
+
+When it is the weekend, the model expect a 713.58 decrease in ridership. \
+
+# Question 8\
+*If the temperature and the wind speed are average, what is the expected ridership for a weekend day? What is the expected ridership for a weekday? Show the code that gets you your answers.*\
+
+```{r}
+# first, let's find out what "average" means for windspeed and temp
+mean(bikes$wind_kph)
+mean(bikes$temp_c)
+```
+
+The average wind speed is 20.96062 kph.\
+The average temperature in Celsius is 38.41317 degrees. \
+
+```{r}
+# Now that we have the averages, we can create an equation and input these 
+# numbers in the correct places. 
+
+# FOR A WEEKDAY
+-1280.10650	- 20.38598 * 20.96062 + 140.33863 * 38.41317 - 713.57504 * 0
+# we put a 0 because this is would only be a 1 if it was the weekend 
+# this value is for WEEKEND = TRUE
+
+# FOR A WEEKEND
+-1280.10650	- 20.38598 * 20.96062 + 140.33863 * 38.41317 - 713.57504 * 1
+```
+
+The predicted ridership for weekday with average temperature and windspeed is approximately 3638 rides.\
+The predicted ridership for a weekend with average temperature and windspeed is approximately 2970 rides.\
+
+# Question 9\
+*You can use `get_regression_points()` or `predict()` to see how the model did at predicting each individual value of rides. Use one of these functions to find the date with the largest absolute residual. That is, find the day where the model is most wrong about predicted ridership. Why is the model so wrong about this day? (There is a correct answer here.)* \
+
+```{r}
+q8 <- get_regression_points(complex_fit) 
+
+# find the highest residual
+q8 %>% 
+  mutate(residual_ab = abs(residual)) %>% 
+  arrange(desc(residual_ab))
+```
+The day is 2012-10-29. I am not quite sure why the model is wrong, but I am wondering if it has to do with the limited information the model has on the weather conditions on that day. Scanning over the other information available in the data, the weather was a cat3 which means there was a high possibility of stormy weather which could have impacted the ridership.  

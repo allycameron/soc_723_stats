@@ -115,7 +115,6 @@ tidy(simple_fit)
 ```
 With every one year increase, there is a 20.14% increase in men's income. \
 
-# Quesiton 5\
 ```{r}
 gender_employment %>% 
   select(year, wage_percent_of_male, percent_female) %>% 

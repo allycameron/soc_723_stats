@@ -7,3 +7,236 @@ date: "2023-01-12"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+Let's begin by loading the data in our usual way.
+
+```{r}
+library(tidyverse)
+
+# read the file
+twitch_data <- read_csv("../Data/twitchdata-update.csv")
+
+# looking at the data
+View(twitch_data)
+
+# clean up names
+library(janitor)
+twitch_data <- clean_names(twitch_data)
+
+# let's look at the new names
+colnames(twitch_data)
+```
+
+# Question 1\
+
+Part one of the question show the `average_viewers` and `followers` for five random streamers. \
+
+```{r}
+library(dplyr)
+library(tidyverse)
+# create tibble with sample of 5 streamers
+set.seed(0112)
+sample_data <- sample_n(twitch_data, 5) %>% 
+  select(channel, average_viewers, followers )
+
+sample_data
+  
+```
+*What do you notice?* The first thing that I notice is that followers and average viewers do not seem to be as closely related as I would have expected. In all cases, it seems that each channel has a high number of followers but this does not translate to a high number of views, and views seem to always be much lower than a channel's actual number of followers. \
+
+Now, let's summarize these two variables. \
+
+```{r}
+summary(sample_data)
+```
+*Describe the results in a few words. Does anything capture your attention?* \
+The viewers always seem to be much lower than the followers by a noticeable amount. This is interesting as I would have thought a higher percentage of followers would tune in to streams from the channels they follow. \
+
+Now, lets visualize the data by creating a scatter plot. \
+```{r}
+library(ggplot2)
+
+# lets create the scatter plot using ggplot
+ggplot(sample_data, mapping = aes(x = followers, y = average_viewers)) + 
+  geom_point(alpha = 1) + labs(x = "Number of Followers", y = "Average Viewers", title = "Twitch Channels Average Viewers by Follower Count")
+```
+
+The first thing I notice is that the sampled points do not seem to follow any pattern and the scales for the x and y axis make the data very spread out. \
+
+To try to fix this, we will transform the data. \
+
+```{r}
+
+# make the transformations
+sample_data <- sample_data %>% 
+  mutate(log_viewers = log10(average_viewers), 
+         log_followers = log10(followers))
+
+# create new scatter plot
+
+ggplot(sample_data, mapping = aes(x = log_followers, y = log_viewers)) + 
+  geom_point(alpha = 1) + labs(x = "Number of Followers (Logged)", y = "Average Viewers (Logged)", title = "Twitch Channels Average Viewers by Follower Count")
+
+```
+*What do you see now? How does the relationship look like?* Now, the points look slightly closer and the scales are easier to read. This helps me to see that there could be evidence for a linear relationship. \
+
+
+# Question 2 \
+
+Based on this, let's run a linear regression using `lm()`.\
+
+```{r}
+# let's log all of the raw data now..
+
+twitch_data <- twitch_data %>% 
+  mutate(log_viewers = log10(average_viewers), 
+         log_followers = log10(followers))
+
+fit1 <- lm(log_viewers ~ log_followers, data = twitch_data)
+fit1
+```
+
+
+Now, let's look at another way to get a summary of our model.\
+
+```{r}
+library(broom)
+tidy(fit1)
+```
+
+Now, let's interpret our coefficient from the logged followers. \
+
+```{r}
+# let's do the math to interpret our logged inputs. 
+1.1^{0.6} 
+```
+
+$$1.1^{0.6} = 1.058853$$
+
+A 10% increase in followers is associated with a 5.9% increase in the average number of viewers. \
+
+# Question 3\
+
+Now, let's look at our line of best fit and check the residuals.\
+
+```{r}
+library(broom)
+
+pred_data <- augment(fit1)
+
+# glimpse our new data 
+glimpse(pred_data)
+```
+Now, lets visualize the data. \
+
+```{r}
+pred_data %>% 
+  ggplot(aes(x = log_followers, 
+             y = log_viewers)) +
+  geom_jitter(alpha = 0.4) + 
+  geom_line(aes(x = log_followers, 
+                y = .fitted), 
+            col = "orange") + 
+  theme_minimal() +
+  labs(subtitle = "Fitted Model and Raw Data", 
+       title = "Followers & Average Viewership", 
+       x = "log(followers)", 
+       y = "log(viewers)")
+```
+*Do you think our model describes the relationship well?* This is where I start having trouble, I think the line we fit here does an okay job of representing the data. However, I am not sure if there is a better line of best fit. Especially, where the follower counts are greater, as the line seems to not reflect the pattern as well when we move past 6. Additionally, the points before 4 on the log(followers) seem to not be reflected well by our line.\
+
+```{r}
+pred_data <- pred_data %>% 
+  mutate(squared_res = .resid^2)
+
+pred_data %>% 
+  ggplot(aes(x = log_followers, 
+             y = squared_res)) +
+  geom_jitter(alpha = 0.4) + 
+  theme_minimal() +
+  labs(title = "Resideuals and Followers", 
+       x = "log(followers)", 
+       y = "Squared Residuals")
+```
+*What do you see? Are there any big residuals?* I see that most of the points are centered around 0, which is a good sign I believe. However, there are some points that have bigger residuals. I squared the values so that I am only working with positive values. As the log(followers) approach 6, there seems to be high values for the residuals. Additionally, right after 5 for the log(followers) there is a small spike in the values of the squared residuals.\
+
+*Do they happen often in a particular range of our x-variable?*\
+
+As log(followers) approaches 6, I see the biggest deviations from 0 for the residuals. There are four points (two on the negative and two on the positive side of 0) that show this high deviation. \
+
+# Question 4 \
+
+Now we will look at a regression using one categorical variable to predict one continuous variable. We will use `language` as the predictor and `average_viewers` as the dependent variable.\
+
+```{r}
+# look at the raw data
+question_4 <- twitch_data %>% 
+  select(channel, average_viewers, language )
+
+question_4
+
+# look at the summary
+q4_2 <- question_4 %>% group_by(language) %>% 
+  summarise(sum_viewers = mean(average_viewers)) %>% 
+  arrange(desc(sum_viewers))
+
+q4_2
+
+```
+This time around, I did the summary differently. I grouped by language and found the average views by language. Then, I reordered them from greatest to least. I see here that on average, Russian channels actually had the highest viewers, not English. This is surprising to me, but probably because I only speak English. \
+
+```{r}
+# plot the variables
+ggplot(question_4, mapping = aes(x = language, y = log(average_viewers))) + 
+  geom_boxplot() + theme(axis.text.x = element_text(angle = 90)) + 
+  labs(title = "Average viewers by Language", x = "Language", 
+       y = "Average Viewers")
+```
+I struggled with decided how to plot the raw data. I decided to create a boxplot since we have a categorical variable and a continuous variable. I logged the views so that the boxplot is easier to read. Looking at the visualization it makes sense as to why Russia comes in higher, the minimum viewership for Russian channels is a lot higher than the minimum viewership for English channels.\
+
+# Question 5\
+```{r}
+library(moderndive)
+twitch_data <- twitch_data %>% 
+  mutate(language = as.factor(language), 
+         language = relevel(language, ref = "English"))
+
+fit2 <- lm(average_viewers ~ language, data = twitch_data)
+
+# these do the same thing pretty much, the second just provides more info
+tidy(fit2)
+get_regression_table(fit2)
+plot(fit2)
+
+```
+
+*Interpret the results.* Since there are a lot of coefficients here I will try to interpret a few of them. 
+I think that English, the reference category is the intercept meaning that there is on average 5112 viewers for English channels. So, looking at Arabic for example, the average viewership for these channels is 5112.81 + 569.39 = 5682.2 average viewers. Let's look at Greek-speaking channels. The average viewership for these channels is 5112.81 - 3151.81 = 1961 average viewers. If we look back at our tibble showing the raw data numbers, these numbers make sense. 
+
+```{r}
+# Now for the prediction
+pred_data2 <- augment(fit2)
+
+# glimpse our new data 
+glimpse(pred_data2)
+
+pred_data2 %>% 
+  ggplot(aes(x = language, 
+             y = average_viewers)) +
+  geom_jitter(alpha = 0.4) + 
+  geom_line(aes(x = language, 
+                y = .fitted), 
+            col = "orange") + 
+  theme_minimal() +
+  labs(subtitle = "Fitted Model and Raw Data", 
+       title = "Followers & Average Viewership", 
+       x = "log(followers)", 
+       y = "log(viewers)") + theme(axis.text.x = element_text(angle = 90))
+```
+
+*How is my prediction doing?* Based on these few I calculated, the prediction seem to be spot on. 
+
+# Question 6\
+
+Now, let's look at the residuals. 
+
