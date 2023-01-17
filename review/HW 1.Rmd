@@ -201,42 +201,50 @@ twitch_data <- twitch_data %>%
   mutate(language = as.factor(language), 
          language = relevel(language, ref = "English"))
 
-fit2 <- lm(average_viewers ~ language, data = twitch_data)
+fit2 <- lm(log_viewers ~ language, data = twitch_data)
+fit3 <- lm(average_viewers ~ language, data = twitch_data)
 
 # these do the same thing pretty much, the second just provides more info
 tidy(fit2)
 get_regression_table(fit2)
-plot(fit2)
+
+# for interpretation
+get_regression_table(fit3)
 
 ```
 
-*Interpret the results.* Since there are a lot of coefficients here I will try to interpret a few of them. 
-I think that English, the reference category is the intercept meaning that there is on average 5112 viewers for English channels. So, looking at Arabic for example, the average viewership for these channels is 5112.81 + 569.39 = 5682.2 average viewers. Let's look at Greek-speaking channels. The average viewership for these channels is 5112.81 - 3151.81 = 1961 average viewers. If we look back at our tibble showing the raw data numbers, these numbers make sense. 
+*Interpret the results.* Since there are a lot of coefficients here I will try to interpret a few of them (using the regression table, I ended up going back and creating the model with viwers logged, but interpreted the results while they were in their normal state. I need more instruction on how to interpret logged results. So this interpretation will be with a new model called `fit3` which will keep the linear regression without the logged viewers). I think that English, the reference category is the intercept meaning that there is on average 5112 viewers for English channels. So, looking at Arabic for example, the average viewership for these channels is 5112.81 + 569.39 = 5682.2, 569.39 more viewers than English channels. Let's look at Greek-speaking channels. The average viewership for these channels is 5112.81 - 3151.81 = 1961 average viewers. If we look back at our tibble showing the raw data numbers, these numbers make sense. 
 
 ```{r}
 # Now for the prediction
-pred_data2 <- augment(fit2)
-
+pred_data2 <- broom::augment(fit2, se_fit = TRUE) %>%  
+  distinct(language, .fitted, .se.fit) %>% 
+  mutate(lower = .fitted + qnorm(0.025) * .se.fit,
+         upper = .fitted + qnorm(0.975) * .se.fit)
 # glimpse our new data 
 glimpse(pred_data2)
-
-pred_data2 %>% 
-  ggplot(aes(x = language, 
-             y = average_viewers)) +
-  geom_jitter(alpha = 0.4) + 
-  geom_line(aes(x = language, 
-                y = .fitted), 
-            col = "orange") + 
-  theme_minimal() +
-  labs(subtitle = "Fitted Model and Raw Data", 
-       title = "Followers & Average Viewership", 
-       x = "log(followers)", 
-       y = "log(viewers)") + theme(axis.text.x = element_text(angle = 90))
+  
+  ggplot(twitch_data, aes(log_viewers, language)) + 
+  geom_jitter(color = "grey") +
+  geom_pointrange(data = pred_data2, mapping = aes(x = .fitted, xmin = lower,
+                                                   xmax = upper))  + 
+  labs(title = paste0("Raw Data with point ranges of the fitted values from", 
+       " predicted data"), x = "log(Average Viewers)",
+       y = "Language of Channel")
 ```
 
-*How is my prediction doing?* Based on these few I calculated, the prediction seem to be spot on. 
+*How is my prediction doing?* Based on these few I calculated above, the prediction seem to be spot on with the raw data. However, let's look at the residuals. 
 
 # Question 6\
 
 Now, let's look at the residuals. 
 
+```{r}
+res_plot <- augment(fit2) 
+res_plot
+
+# trying to make residual plot, not complete sure if I interpret correctly. 
+ggplot(res_plot, aes(x = language, y = .resid)) + geom_point() + coord_flip() +
+  labs(y = "Residuals", x = "Languages")
+```
+Here is me trying to plot the residuals for each language. I see that English had a pretty far spread from around 0. Most of the other languages have a tighter grouping around 0. I also see that Japanese and Russian have some pretty large value residuals. Other, Slovak, Swedish, and Finnish seem to have been predicted the best. 
