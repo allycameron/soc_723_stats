@@ -21,6 +21,12 @@ gender_employment <- read_csv("../Data/gender_employment.csv")
 
 # Glimpse at the data 
 glimpse(gender_employment)
+
+#center year
+unique(gender_employment$year)
+
+gender_employment <- gender_employment %>% 
+  mutate(year = year-2013)
 ```
 
 Now lets visualize the data in respect to the trend we will be looking at. 
@@ -53,15 +59,15 @@ tidy(parallel_model)
 *Can we say anything about overall trends by year?* Each year, the male's wage goes up by 19.2%. \
 
 *1. Calculate the wage percentage of male income for Sales and Office occupations in 2015.*\
-$$-306.72 + 6.32 * 0 + 5.76 * 0 + 5.52 * 0 + 4.91 * 0 -1.31 * 0 + 3.33 * 1 + 6.08 * 0 + 0.19 * 2015 = 79.46$$\
+$$-80.20 + 6.32 * 0 + 5.76 * 0 + 5.52 * 0 + 4.91 * 0 -1.31 * 0 + 3.33 * 1 + 6.08 * 0 + 0.19 * 2015 = 305.98$$\
 (I am confused here because I don't know how to convert this number I got into a percentage (like I did above) or if I should have converted something else before?) ALSO, I decided to use the actual year in the year category because in question 3 they replace year with the actual year.\
 
-MY INTERPRETATION: Sales and Office Occupations male's income  will increase by 2015 79.461 more than Management, Business, and Financial. (Not sure if the reference category needs to be mentioned with the interpretation)\
+MY INTERPRETATION: Sales and Office Occupations male's income percentage will increase in 2015 by 305.98 more than Management, Business, and Financial. (Not sure if the reference category needs to be mentioned with the interpretation)\
 *2. Calculate the wage percentage of male income for Service occupations in 2016.*\
 
-$$-306.72 + 6.32 * 0 + 5.76 * 0 + 5.52 * 0 + 4.91 * 0 -1.31 * 0 + 3.33 * 0 + 6.08 * 1 + 0.19 * 2016 =  82.4$$ \
+$$-80.20 + 6.32 * 0 + 5.76 * 0 + 5.52 * 0 + 4.91 * 0 -1.31 * 0 + 3.33 * 0 + 6.08 * 1 + 0.19 * 2016 =  308.92$$ \
 
-MY INTERPRETATION: Service male's income  will increase by 2016 82.4 more than Management, Business, and Financial. \
+MY INTERPRETATION: Service male's income percentage will increase by 2016 308.92 more than Management, Business, and Financial. \
 
 # Question 2\
 ```{r}
@@ -90,11 +96,12 @@ tidy(interaction_model)
 
 *What would the estimate be for "Computer, Engineering, and Science" for 2016.*\
 (this time, I will only include things in my equation that are "turned on" like in the example, instead of writing out the things that will receive 0s.)\
-$$-1370.47 + 0.72*2016 + 10002.85 * 1 - 0.49 * 2016 * 1 = 9096.06$$\
-
+$$79.40 + 0.72*2016 + 10002.85 * 1 - 0.49 * 2016 * 1 = 10545.93$$\
+The estimate for the male wage percentage in computer, engineering, and science for 2016 is 10545.93. 
 *What about for Service?*\
 
-$$-1370.47 + 0.72*2016 + 2137.65 * 1 -1.06 * 2016 * 1 = 81.72$$\
+$$79.40 + 0.72*2016 + 2137.65 * 1 -1.06 * 2016 * 1 = 1531.61$$\
+The estimate for the male wage percentage in service for 2016 is 1531.61.
 
 
 I notice that the estimates for each are not as close as they were when we used the parallel model. This makes sense as interaction models allow the slopes to be different while the parallel model seems to constrain the slopes so that they can be parallel. \
