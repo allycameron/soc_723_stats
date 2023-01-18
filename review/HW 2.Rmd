@@ -1,8 +1,8 @@
 ---
 title: "HW 2"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 date: "2023-01-12"
 ---
 
