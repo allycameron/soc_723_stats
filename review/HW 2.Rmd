@@ -22,11 +22,7 @@ gender_employment <- read_csv("../Data/gender_employment.csv")
 # Glimpse at the data 
 glimpse(gender_employment)
 
-#center year
-unique(gender_employment$year)
 
-gender_employment <- gender_employment %>% 
-  mutate(year = year-2013)
 ```
 
 Now lets visualize the data in respect to the trend we will be looking at. 
