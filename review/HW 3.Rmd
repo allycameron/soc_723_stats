@@ -1,8 +1,8 @@
 ---
 title: "HW 3"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 date: "2023-01-12"
 ---
 
@@ -24,7 +24,7 @@ bikes <- tibble(bikes)
 *1. How many rows are in the dataset?* \
 There are 500 rows\
 *2.What does each row represent?* \
-Each row represents a case\
+Each row represents a case. \
 *3.What dates does the dataset cover?*\
 ```{r}
 sort(bikes$date)
@@ -42,7 +42,7 @@ max(bikes$rides)
 ```{r}
 max(bikes$windspeed)
 ```
-34.00002\
+34.00002 mph. \
 
 # Question 1\
 *What is the correlation between number of rides and what the temperature feels like (in Fahrenheit)? What is the correlation between the number of rides and wind speed (miles per hour)?*\
@@ -52,7 +52,7 @@ library(boot)
 corr(bikes %>% select(temp_feel, rides))
 corr(bikes %>% select(rides, windspeed))
 ```
-There is a strong, positive correlation (0.58) between rides and the temperature feels like (in Fahrenheit).There is a weak, negative correlation (-0.19) between number of rides and wind speed (miles per hour).\
+There is a pretty strong, positive correlation (0.58) between rides and the temperature feels like (in Fahrenheit). There is a weak, negative correlation (-0.19) between number of rides and wind speed (miles per hour).\
 
 # Question 2\
 *Using the approximation that a mile is equal to 1.61 kilometers, convert wind speed to kilometers per hour. Call the new variable wind_kph and add it to the bikes data frame. What is the correlation between wind speed in MPH and wind speed in KPH? Explain why in enough detail that I know you understand.*\
@@ -68,7 +68,7 @@ corr(bikes %>% select(wind_kph, windspeed))
 The correlation is 1, meaning there is a perfect correlation. The valued are related in an identical manner (perfectly) because the values for each are the same just converted to different units (for example, when you have 1 mile its perfectly correlated to 1.61 km because this is the same distance just represented differently).\
 
 # Question 3\
-Estimate two simple regressions.\
+Next, let's estimate two simple regressions.\
 
 ```{r}
 # regression where windspeed mph predicts rides
@@ -78,7 +78,7 @@ mph_fit <- lm(rides ~ windspeed, data = bikes)
 kph_fit <- lm(rides ~ wind_kph, data = bikes)
 ```
 
-Use `get_regression_table()` or `broom::tidy()` to disply the results. f any coefficients are the same between models, explain why. If any coefficients are different between models, explain why. Make sure to give me enough detail to convince me you understand.\
+**Use `get_regression_table()` or `broom::tidy()` to display the results. If any coefficients are the same between models, explain why. If any coefficients are different between models, explain why. Make sure to give me enough detail to convince me you understand.**\
 
 ```{r}
 library(broom)
@@ -89,7 +89,9 @@ tidy(mph_fit)
 ```{r}
 tidy(kph_fit)
 ```
-The intercept and the estimate is the same for both models. This is because the only change in the model is the units, which has no effect on the rate of change or the intercept. This is because the change that occurred is perfectly correlated. When ran through the regression equation it will lead to the same results regardless of the changed numerical input, because they are proportional to each other. \
+The intercept and the estimate is the same for both models (This is interesting, because in class I noticed that we said the coefficient should change proportional to the unit change we implemented. I am wondering if I did something wrong... However, I will still go forward with my explanation). \
+
+This is because the only change in the model is the units, which has no effect on the rate of change or the intercept. This is because the change that occurred is perfectly correlated. When ran through the regression equation it will lead to the same results regardless of the changed numerical input, because they are proportional to each other. \
 
 # Question 4\
 *Using the models from above, tell me what the predicted ridership would be if the wind is blowing at 20 KPH. What would the predicted ridership be if the wind is blowing at 20 MPH?*\
@@ -119,9 +121,9 @@ tidy(kph_c_fit)
 
 INTERPRETATIONS. \
 
-1. For a 1 degree increase in temperature, the model expects a 143.23 increase in ridership. \
-2. For a 1 kph increase in wind speed, the model expects a 19.84 decrease in ridership. \
-3. intercept interpretation: When temperature is at 0 degrees and there is 0 wind, the ridership is -1603.96.\
+1. For every 1 degree increase in temperature, the model expects a 143.23 increase in ridership (people riding their bikes). \
+2. For every 1 kph increase in wind speed, the model expects a 19.84 decrease in ridership. \
+3. intercept interpretation: If the temperature is  0 degrees Celsius and there is 0 kph wind, we expect -1603.96 people riding their bikes.\
 
 # Question 6\
 
@@ -131,7 +133,7 @@ Ridership predictions\
 2. $$-1603.96 -19.84 * 5 + 143.23 * 15$$\
 445.29 rides\
 3. $$-1603.96 -19.84 * 40 + 143.23 * 10$$\
-The last one is more tricky I think. The answer is -965.26, but since this is a real-world example. I would say that this means there would be 0 rides.\
+-965.26 rides.\
 
 # Question 7\
 *Let's add another predictor into the mix. Estimate a new model that uses weekend in addition to the predictors already in the model. Display the model results. Interpret the coefficient on weekend using a complete sentence.*
@@ -143,7 +145,7 @@ complex_fit <- lm(rides ~ wind_kph + temp_c + weekend, data = bikes)
 tidy(complex_fit)
 ```
 
-When it is the weekend, the model expect a 713.58 decrease in ridership. \
+When all other variables in the model are adjusted for, the model expect a 713.58 decrease in ridership when it is the weekend. \
 
 # Question 8\
 *If the temperature and the wind speed are average, what is the expected ridership for a weekend day? What is the expected ridership for a weekday? Show the code that gets you your answers.*\
@@ -184,4 +186,4 @@ q8 %>%
   mutate(residual_ab = abs(residual)) %>% 
   arrange(desc(residual_ab))
 ```
-The day is 2012-10-29. I am not quite sure why the model is wrong, but I am wondering if it has to do with the limited information the model has on the weather conditions on that day. Scanning over the other information available in the data, the weather was a cat3 which means there was a high possibility of stormy weather which could have impacted the ridership.  
+The day is 2012-10-29. I am not quite sure why the model is wrong, but I am wondering if it has to do with the limited information the model has on the weather conditions on that day. Scanning over the other information available in the data, the weather was a cat3 which means there was a high possibility of a hurricane which definitely would impact ridership. The 20 people who went out riding their bikes during hurricane Sandy are probably some VERY interesting people. 
