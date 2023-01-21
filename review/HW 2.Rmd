@@ -19,7 +19,8 @@ theme_set(theme_light())
 # Read in the data 
 gender_employment <- read_csv("../Data/gender_employment.csv")
 
-# Glimpse at the data 
+
+# look at the raw data
 glimpse(gender_employment)
 
 
@@ -52,20 +53,22 @@ parallel_model <- lm(wage_percent_of_male ~ major_category + year, data = gender
 library(broom)
 tidy(parallel_model)
 ```
-*Can we say anything about overall trends by year?* Each year, the male's wage goes up, on average, by 0.19 units. \
+**Can we say anything about overall trends by year?** Each year, the male's wage goes up, on average, by 0.19 units. \
 
-*1. Calculate the wage percentage of male income for Sales and Office occupations in 2015.*\
+**1. Calculate the wage percentage of male income for Sales and Office occupations in 2015.**\
 $$-306.72 + 3.33 * 1 + 0.19 * 2015 = 79.46$$\
 (I decided to use the actual year in the year category because in question 3 they replace year with the actual year.\
 
 MY INTERPRETATION: Sales and Office Occupations male's income percentage will increase in 2015 by 79.46 units. \
-*2. Calculate the wage percentage of male income for Service occupations in 2016.*\
+**2. Calculate the wage percentage of male income for Service occupations in 2016.**\
 
 $$-306.72 + 6.08 * 1 + 0.19 * 2016 =  82.4$$ \
 
 MY INTERPRETATION: Service male's income percentage will increase by 82.4 units in 2016. \
 
 # Question 2\
+
+Next, let's create a similar plot as above but separate the plots by major category. 
 ```{r}
 gender_employment%>% 
   ggplot(aes(x = year, y = wage_percent_of_male)) +
@@ -76,6 +79,7 @@ gender_employment%>%
        x = "Year") + 
   facet_wrap(~major_category, nrow = 2)
 ```
+
 Looking at this, the parallel rends assumption does not seem warranted because I notice that slopes are not the same across categories. For example, I notice that the Natural Resources, Construction, and Maintenance occupation has a much steeper negative slope than most of the other categories. Additionally, the slope of Service is almost 0, but seems to be slightly negative. \
 
 # Question 3\
@@ -83,6 +87,7 @@ Looking at this, the parallel rends assumption does not seem warranted because I
 Based on this observation, now let's try fitting the model as an interaction.\
 
 ```{r}
+
 interaction_model <- lm(wage_percent_of_male ~ major_category * year, data = gender_employment)
 
 # lastly, let's summarize the data
@@ -90,13 +95,14 @@ library(broom)
 tidy(interaction_model)
 ```
 
-*What would the estimate be for "Computer, Engineering, and Science" for 2016.*\
+**What would the estimate be for "Computer, Engineering, and Science" for 2016.**\
 
 $$-1370.47 + 0.72*2016 + 10002.85 * 1 - 0.49 * 2016 * 1  = 9096.06$$\
 
 
-The estimate for the male wage percentage in computer, engineering, and science for 2016 is 9096.06%. (I am not sure if I can interpret this as a percentage.)
-*What about for Service?*\
+The estimate for the male wage percentage in computer, engineering, and science for 2016 is 9096.06%. (I am not sure if I can interpret this as a percentage.)\
+
+**What about for Service?**\
 
 $$-1370.47 + 0.72*2016 + 2137.65 * 1 - 1.06 * 2016 * 1= 81.74$$\
 The estimate for the male wage percentage in service for 2016 is 81.74%. 
@@ -105,7 +111,7 @@ The estimate for the male wage percentage in service for 2016 is 81.74%.
 I notice that the estimates for each are not as close as they were when we used the parallel model. I am wondering if this has something to do with the fact that with an interaction model we are able to allow for different slopes and lines, so that the model can make estimates that are farther apart. \
 
 # Question 4\
-*Why would we choose to build a model that assumes parallel trends?*\
+**Why would we choose to build a model that assumes parallel trends?**\
 The parallel model is easier, and interaction models are more complex. When the complexity is not warranted, there is no reason to use such a complicated model like an interaction. For example, when the slopes seem not to differ as much, then adding the complexity of an interaction model makes no sense.\
 
 # Question 5\
@@ -113,6 +119,13 @@ The parallel model is easier, and interaction models are more complex. When the 
 We will start by building a simple model where `wage_percent_of_male` is the outcome variable and `year` is the predictor. \
 
 ```{r}
+
+# we already looked at the raw data above, but before we build our model
+# lets look at a summary of the raw data
+
+summary(gender_employment %>% 
+  select(year, wage_percent_of_male))
+
 # build model
 simple_fit <- lm(wage_percent_of_male ~ year, data = gender_employment)
 
@@ -135,6 +148,11 @@ We see pretty weak correlations between the variables (0.02, 0.005, 0.11). \
 Now that we see there is weak correlation however, we really want to see if the relationship between `year` and the paygap are conditional on the proportion of women who work in an occupation. To do this we will add proportion of women who work in an occupation to our linear model. \
 
 ```{r}
+
+# again, before creating the model let's look at a summary
+summary(gender_employment %>% 
+  select(year, wage_percent_of_male, percent_female))
+
 # create the model
 multiple_fit <- lm(wage_percent_of_male ~ year + percent_female, data = gender_employment)
 
@@ -147,7 +165,7 @@ For each additional year, there is a .20 unit increase men's income percentage. 
 
 # Question 6\
 
-*Briefly tell me, in your own words, what R-squared is.* R-squared has to do with variation in the dependent variable around the mean that is explained by the model. In other words, the R-squared value shows you the variation around the regression line. 
+**Briefly tell me, in your own words, what R-squared is.** R-squared has to do with variation in the dependent variable around the mean that is explained by the model. In other words, the R-squared value shows you the variation around the regression line. 
 
 ```{r}
 

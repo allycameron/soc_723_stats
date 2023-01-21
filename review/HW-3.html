@@ -367,8 +367,10 @@ display: none;
 <pre class="r"><code>library(moderndive)
 theme_set(theme_minimal())
 
-# now let&#39;s load the data from the bayesrules packages
+# now let&#39;s load the data from the bayesrules package
 data(bikes, package = &quot;bayesrules&quot;)
+
+# look at the raw data
 glimpse(bikes)</code></pre>
 <pre><code>## Rows: 500
 ## Columns: 13
@@ -385,7 +387,6 @@ glimpse(bikes)</code></pre>
 ## $ windspeed   &lt;dbl&gt; 10.749882, 16.636703, 10.739832, 12.522300, 11.304642, 17.…
 ## $ weather_cat &lt;fct&gt; categ2, categ1, categ1, categ1, categ2, categ2, categ1, ca…
 ## $ rides       &lt;int&gt; 654, 1229, 1454, 1518, 1362, 891, 1280, 1220, 1137, 1368, …</code></pre>
-<pre class="r"><code>bikes &lt;- tibble(bikes)</code></pre>
 <div id="question-0" class="section level1">
 <h1>Question 0<br />
 </h1>
@@ -555,6 +556,24 @@ the same distance just represented differently).<br />
 </h1>
 <p>Next, let’s estimate two simple regressions.<br />
 </p>
+<pre class="r"><code># look at raw data
+glimpse(bikes %&gt;% 
+  select(rides, windspeed, wind_kph))</code></pre>
+<pre><code>## Rows: 500
+## Columns: 3
+## $ rides     &lt;int&gt; 654, 1229, 1454, 1518, 1362, 891, 1280, 1220, 1137, 1368, 13…
+## $ windspeed &lt;dbl&gt; 10.749882, 16.636703, 10.739832, 12.522300, 11.304642, 17.87…
+## $ wind_kph  &lt;dbl&gt; 17.307310, 26.785092, 17.291130, 20.160903, 18.200474, 28.78…</code></pre>
+<pre class="r"><code># before we look create the models, let&#39;s look at the summary for all variables
+summary(bikes %&gt;% 
+  select(rides, windspeed, wind_kph))</code></pre>
+<pre><code>##      rides        windspeed         wind_kph     
+##  Min.   :  20   Min.   : 1.500   Min.   : 2.415  
+##  1st Qu.:2208   1st Qu.: 8.906   1st Qu.:14.339  
+##  Median :3490   Median :12.532   Median :20.176  
+##  Mean   :3482   Mean   :13.019   Mean   :20.961  
+##  3rd Qu.:4624   3rd Qu.:15.917   3rd Qu.:25.626  
+##  Max.   :6946   Max.   :34.000   Max.   :54.740</code></pre>
 <pre class="r"><code># regression where windspeed mph predicts rides
 mph_fit &lt;- lm(rides ~ windspeed, data = bikes)
 
@@ -621,7 +640,26 @@ The predicted ridership would also be 3515.26.<br />
 bikes &lt;- bikes %&gt;% 
   mutate(temp_c = temp_feel*5/9)
 
-# now, create the model (additive)
+
+#  next, look at raw data
+glimpse(bikes %&gt;% 
+  select(rides, temp_c, wind_kph))</code></pre>
+<pre><code>## Rows: 500
+## Columns: 3
+## $ rides    &lt;int&gt; 654, 1229, 1454, 1518, 1362, 891, 1280, 1220, 1137, 1368, 136…
+## $ temp_c   &lt;dbl&gt; 35.95903, 27.24803, 28.38388, 29.24128, 28.21973, 25.89048, 2…
+## $ wind_kph &lt;dbl&gt; 17.307310, 26.785092, 17.291130, 20.160903, 18.200474, 28.780…</code></pre>
+<pre class="r"><code># before we look create the models, let&#39;s look at the summary for all variables
+summary(bikes %&gt;% 
+  select(rides, temp_c, wind_kph))</code></pre>
+<pre><code>##      rides          temp_c         wind_kph     
+##  Min.   :  20   Min.   :25.26   Min.   : 2.415  
+##  1st Qu.:2208   1st Qu.:33.27   1st Qu.:14.339  
+##  Median :3490   Median :38.47   Median :20.176  
+##  Mean   :3482   Mean   :38.41   Mean   :20.961  
+##  3rd Qu.:4624   3rd Qu.:44.14   3rd Qu.:25.626  
+##  Max.   :6946   Max.   :48.30   Max.   :54.740</code></pre>
+<pre class="r"><code># now, create the model (additive)
 kph_c_fit &lt;- lm(rides ~ wind_kph + temp_c, data = bikes)
 tidy(kph_c_fit)</code></pre>
 <pre><code>## # A tibble: 3 × 5

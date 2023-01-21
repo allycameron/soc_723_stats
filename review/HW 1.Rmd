@@ -42,14 +42,14 @@ sample_data <- sample_n(twitch_data, 5) %>%
 sample_data
   
 ```
-*What do you notice?* The first thing that I notice is that followers and average viewers do not seem to be as closely related as I would have expected. In all cases, it seems that each channel has a high number of followers (in my opinion) but this does not translate to a high number of views, and views seem to always be much lower than a channel's actual number of followers. \
+**What do you notice?** The first thing that I notice is that followers and average viewers do not seem to be as closely related as I would have expected. In all cases, it seems that each channel has a high number of followers (in my opinion) but this does not translate to a high number of views, and views seem to always be much lower than a channel's actual number of followers. \
 
 Now, let's summarize these two variables. \
 
 ```{r}
 summary(sample_data)
 ```
-*Describe the results in a few words. Does anything capture your attention?* \
+**Describe the results in a few words. Does anything capture your attention?** \
 The viewers always seem to be much lower than the followers by a noticeable amount. This is interesting as I would have thought a higher percentage of followers would tune in to streams from the channels they follow. Additionally, there seem to be outliers associated with both (I say this because the max and min for both are a great distance away from the median).\
 
 Now, lets visualize the data by creating a scatter plot. \
@@ -84,7 +84,8 @@ ggplot(twitch_data, mapping = aes(x = log_followers, y = log_viewers)) +
 
 
 ```
-*What do you see now? How does the relationship look like?* Now, the points are all packed within the same plane, and it seems like there are less outliers at least by the visualization, and there points that seem like outliers look closer together.  This helps me to see that there could be evidence for a positive linear relationship. \
+
+**What do you see now? How does the relationship look like?** Now, the points are all packed within the same plane, and it seems like there are less outliers at least by the visualization, and there points that seem like outliers look closer together.  This helps me to see that there could be evidence for a positive linear relationship. \
 
 
 # Question 2 \
@@ -149,7 +150,8 @@ pred_data %>%
        x = "log(followers)", 
        y = "log(viewers)")
 ```
-*Do you think our model describes the relationship well?* While the points on the lower end of the followers does not seem to be well represented by the line, the overall relationship of the points seem to be well represented by the line. I say this because the line seems to generally split the data in half which seems like a good sign. However, knowing the residuals would be most helpful to answer this question. \
+
+**Do you think our model describes the relationship well?** While the points on the lower end of the followers does not seem to be well represented by the line, the overall relationship of the points seem to be well represented by the line. I say this because the line seems to generally split the data in half which seems like a good sign. However, knowing the residuals would be most helpful to answer this question. \
 
 ```{r}
 pred_data <- pred_data %>% 
@@ -164,7 +166,8 @@ pred_data %>%
        x = "log(followers)", 
        y = "Squared Residuals")
 ```
-*What do you see? Are there any big residuals? Do they happen often in a particular range of our x-variable?*\
+
+**What do you see? Are there any big residuals? Do they happen often in a particular range of our x-variable?**\
 I see that most of the points are centered around 0, which is a good sign. However, there are some points that have bigger residuals. I squared the values so that I am only working with positive values. The biggest area where there is a spike in the values of the residuals is between log(followers) at 5 and 6. However, I think the smaller residuals are fine. The two around 2.5 worry me but since there are only two (between 5.5 and 6) I believe this is still okay? \
 
 # Question 4 \
@@ -195,6 +198,7 @@ ggplot(question_4, mapping = aes(x = language, y = log(average_viewers))) +
   labs(title = "Average viewers by Language", x = "Language", 
        y = "Average Viewers")
 ```
+
 I struggled with decided how to plot the raw data. I decided to create a boxplot since we have a categorical variable and a continuous variable. I logged the views so that the boxplot is easier to read. Looking at the visualization it makes sense as to why Russia comes in higher, the minimum viewership for Russian channels is a lot higher than the minimum viewership for English channels.\
 
 # Question 5\
@@ -216,7 +220,7 @@ get_regression_table(fit3)
 
 ```
 
-*Interpret the results.* Since there are a lot of coefficients here I will try to interpret a few of them (using the regression table, I ended up going back and creating the model with viewers logged, but interpreted the results while they were in their normal state.\
+**Interpret the results.** Since there are a lot of coefficients here I will try to interpret a few of them (using the regression table, I ended up going back and creating the model with viewers logged, but interpreted the results while they were in their normal state.\
 
 Let's try to interpret a few of these values. I know that English is the reference category which means that it's mean is represented by the intercept. (I need more instruction on how to interpret logged results. I tried exponentiating (with `exp()` and using the trick you taught us with 1.1^{})  and the values were not as similar to the averages I found in the summary, but that is weird to me since with the original data everything seems to check out). So this interpretation will be with a new model called `fit3` which will keep the linear regression without the logged viewers). \
 
@@ -240,7 +244,7 @@ glimpse(pred_data2)
        y = "Language of Channel")
 ```
 
-*How is my prediction doing?* Based on these few I calculated above, the prediction seem to be spot on with the raw data. However, let's look at the residuals. 
+**How is my prediction doing?** Based on these few I calculated above, the prediction seem to be spot on with the raw data. However, let's look at the residuals. 
 
 # Question 6\
 
@@ -254,4 +258,5 @@ res_plot
 ggplot(res_plot, aes(x = language, y = .resid)) + geom_point() + coord_flip() +
   labs(y = "Residuals", x = "Languages")
 ```
+
 Here is me trying to plot the residuals for each language. I see that English had a pretty far spread from around 0. Most of the other languages have a tighter grouping around 0. I also see that Japanese and Russian have some pretty large value residuals. Other, Slovak, Swedish, and Finnish seem to have been predicted the best. 
