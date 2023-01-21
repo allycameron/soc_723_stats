@@ -74,7 +74,7 @@ gender_employment%>%
   ggplot(aes(x = year, y = wage_percent_of_male)) +
   geom_jitter(alpha = 0.1) + 
   geom_smooth(method = "lm") + 
-  labs(title = "Women's earnings with respect to men's", 
+  labs(title = "Men's earnings across years", 
        y = "% of Men's Income", 
        x = "Year") + 
   facet_wrap(~major_category, nrow = 2) + theme(strip.text.x = element_text(size = 5))
