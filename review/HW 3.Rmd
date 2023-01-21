@@ -24,21 +24,27 @@ glimpse(bikes)
 ```
 # Question 0\
 *1. How many rows are in the dataset?* \
+
+
 There are 500 rows\
 *2.What does each row represent?* \
+
+
 Each row represents a case. \
 *3.What dates does the dataset cover?*\
-```{r}
+```{r, eval = FALSE}
 sort(bikes$date)
 ```
 
 The data set covers from 2011-01-01 to 2012-12-31.\
+
 *4. What is the highest observed ridership in the dataset?*\
 
 ```{r}
 max(bikes$rides)
 ```
 6946 rides\
+
 
 *5. What was the highest wind speed recorded in the dataset*\
 ```{r}
@@ -108,10 +114,10 @@ This is because the only change in the model is the units, which has no effect o
 *Using the models from above, tell me what the predicted ridership would be if the wind is blowing at 20 KPH. What would the predicted ridership be if the wind is blowing at 20 MPH?*\
 
 1. kph\
-$$4205. 06 - 34.49*20$$\
+$4205. 06 - 34.49*20 = 3515.26$\
 The predicted ridership would be 3515.26.\
 2. mph\
-$$4205. 06 - 34.49*20$$\
+$4205. 06 - 34.49*20 = 3515.26$\
 The predicted ridership would also be 3515.26.\
 
 # Question 5\
@@ -148,11 +154,11 @@ INTERPRETATIONS. \
 # Question 6\
 
 Ridership predictions\
-1. $$-1603.96 -19.84 * 15 + 143.23 * 25$$\
+1. $-1603.96 -19.84 * 15 + 143.23 * 25$\
 1679.19 rides.\
-2. $$-1603.96 -19.84 * 5 + 143.23 * 15$$\
+2. $-1603.96 -19.84 * 5 + 143.23 * 15$\
 445.29 rides\
-3. $$-1603.96 -19.84 * 40 + 143.23 * 10$$\
+3. $-1603.96 -19.84 * 40 + 143.23 * 10$\
 -965.26 rides.\
 
 # Question 7\
