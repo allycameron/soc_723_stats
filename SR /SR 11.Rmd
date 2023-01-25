@@ -31,16 +31,11 @@ The probability is 0.96.\
 ```{r}
 exp(1.7)
 ```
-1.7 represents the log odds, so to get the odds can be shown be exponentiating the log-odds. Each time the predictor is increased by one-unit, the odds will multiplicatively increase by 5.473947. \
+1.7 represents the log odds, so to get the odds can be shown be exponentiating the log-odds. Each time the predictor is increased by one-unit, the odds will multiplicatively increase by 5.473947.\
 
 **11E4. Why do Poisson regressions sometimes require the use of an offset? Provide an example.**\
 
-Poisson distributions assume that the rate of events is constant over time, so...when the exposure varies across observations (which can naturally happened from  lengths of observation, area of sampling, or intensity of sampling varying) then you will need to add an offset term to the linear model. [PAGE 357]\
-
-```{r}
-# compute example tomorrow.... or later today
-```
-
+Poisson distributions assume that the rate of events is constant over time, so...when the exposure varies across observations (which can naturally happened from lengths of observation, area of sampling, or intensity of sampling varying) then you will need to add an offset term to the linear model. For example, if we are looking at the popularity of a specific magazine in different areas by measuring the amount purchased at two randomly selected stores in two different geographic areas this may be a time when we need an offset. If one store tallies purchases by day and the other tallies purchases by week, this mismatch in record keeping for the observation would be a reason we would need an offset. If using the Poisson model, we would need to add the logged values of the exposure to our linear model as an offset.
 
 # Medium Questions\
 
@@ -53,22 +48,25 @@ Poisson distributions assume that the rate of events is constant over time, so..
 exp(1.7)
 ```
 This one is a little bit harder. The change depends on the values of the other parameters. We will solve this like we did the other questions calculating the change in odds... so in a Poisson model, a 1.7 coefficient will lead to a proportional change of 5.473947 when the predictor variable increases by one unit. 
+
 **11M3. Explain why the logit link is appropriate for a binomial generalized linear model.**\
 In a  binomial model the continuous values from the model are translated to a probability space between 0 and 1. The logit link does this. 
+
 **11M4. Explain why the log link is appropriate for a Poisson generalized linear model.**\
-For the poisson model, we need to be able to place the continous values in a space that is from 0 to positive whole numbers. The log link function allows us to do this. 
+For the poisson model, we need to be able to place the continuous values in a space that is from 0 to positive whole numbers. The log link function allows us to do this. 
+
 **11M5. What would it imply to use a logit link for the mean of a Poisson generalized linear model? Can you think of a real research problem for which this would make sense?**\
 
-This would mean that we are using a model where the know the maximum count (at most one event within each interval). However, in this case that is not the beauty of Poisson's function (it is able to be used when we don't know the maximum), so instead it would mke more since to use a binomial model. [RECHECK THIS IDK]
+This would mean that we are using a model where the know the maximum count (at most one event within each interval). However, in this case that is not the beauty of Poisson's function (it is able to be used when we don't know the maximum), so instead it would make more since to use a binomial model. [RECHECK THIS IDK]
 
 **11M6. State the constraints for which the binomial and Poisson distributions have maximum entropy. Are the constraints different at all for binomial and Poisson? Why or why not?**\
 
-Both have the same constraints:
+Both have the same constraints:\
 
-1. constant probability of event across all trials
-2. discrete outcomes that are binary. 
+1. constant probability of event across all trials\
+2. discrete outcomes that are binary. \
 
-They are the same because Poisson models are a type of binomial model. 
+They are the same because Poisson models are a type of binomial model.\
 **11M7. Use quap to construct a quadratic approximate posterior distribution for the chimpanzee model that includes a unique intercept for each actor, m11.4 (page 330). Compare the quadratic approximation to the posterior distribution produced instead from MCMC. Can you explain both the differences and the similarities between the approximate and the MCMC distributions? Relax the prior on the actor intercepts to Normal(0,10). Re-estimate the posterior using both ulam and quap. Do the differences increase or decrease? Why?**\
 ```{r}
 library(tidyverse)
@@ -135,7 +133,8 @@ precis(m11.4q_r, 2)
 ```
 
 
-All of the variables seem extremely similar. A[2] has a higher difference than other parameters.With the more relaxed prior, the difference between a[2] becomes even larger. I wonder if this difference has something to do with the fact that quap assumes the shape is normally distributed while ulam assumes no shape.  
+All of the variables seem extremely similar. A[2] has a higher difference than other parameters. With the more relaxed prior, the difference between a[2] becomes even larger. I wonder if this difference has something to do with the fact that `quap` assumes the shape is normally distributed while `ulam` assumes no shape.  
+
 **11M8. Revisit the data(Kline) islands example. This time drop Hawaii from the sample and refit the models. What changes do you observe?**\
 
 ```{r}
@@ -159,14 +158,18 @@ m11.10H <- ulam(
    ),
    data = k, chains = 4, log_lik = TRUE
  )
-# without
 
-d
-k <- Kline %>% 
+precis(m11.10H,2)
+
+# without Hawaii
+
+k2  <- Kline %>% 
   mutate(P = log(population)) %>% 
   mutate(cid = ifelse(contact == "high", 2, 1)) %>% 
   mutate(T = total_tools) %>% 
+  filter(culture != "Hawaii") %>% 
   select(T,P, cid, culture)
+
 m11.10 <- ulam(
    alist(
      T ~ dpois(lambda),
@@ -174,8 +177,10 @@ m11.10 <- ulam(
      a[cid] ~ dnorm(3, 0.5),
      b[cid] ~ dnorm(0, 0.2)
    ),
-   data = dat, chains = 4, log_lik = TRUE
+   data = k2, chains = 4, log_lik = TRUE
  )
+
+precis(m11.10,2)
 
 ```
 
