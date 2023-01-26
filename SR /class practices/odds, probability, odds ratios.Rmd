@@ -1,0 +1,210 @@
+---
+title: "SR 11 Class Discussion"
+output: html_document
+date: "2023-01-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+
+library(tidyverse)
+data("UCBAdmissions")
+
+
+# how to dis-aggregate data
+# each row before had a frequency
+# here we actually counted each frequency as a case
+
+d <- UCBAdmissions %>%  
+  as_tibble() %>% 
+  mutate(admitted = if_else(Admit == "Admitted", 1L, 0L), 
+         female = if_else(Gender == "Female", 1L, 0L)) %>% 
+  uncount(n)
+
+# descriptive
+
+d %>% 
+  group_by(female) %>% 
+  summarize(adprob = mean(admitted))
+# women are less likely to get get admitted then men
+
+# what are the odds of women being admitted?
+.304/(1-.304)
+
+# the odds are 0.437:1
+
+# what are the log odds?
+
+log(.304/(1-.304))
+
+# this is less than 50%
+
+
+# what are the odds of men being admitted?
+.445/(1-.445)
+
+# what are the log odds?
+log(.445/(1-.445))
+
+
+# what is the [log odds ratio] that women will be admitted compared to men?
+
+log((.304/(1-.304))/(.445/(1-.445)))
+# put the reference category first (women)
+# now this negative means that the first group has a lower odds than the second
+
+
+```
+
+Let's work on models now
+
+```{r}
+# for a logit model
+m1 <- glm(admitted ~ female, 
+          data = d, 
+          family = binomial(link = "logit")) # really Bernoulli
+
+# linear regression or lm(admitted~female + Dept, data = d)
+# here, when you look at coeffs, no need for the extra step
+# this is already % points
+lm <- glm(admitted ~ female + Dept, 
+          data = d, 
+          family = gaussian(link = "identity")) 
+summary(lm)
+# the last line (family)
+# how do you evaluate how good the prediction is? 
+# what test should we do/likelihood? what are we comparing our prediction on?
+# what are the units of the B in?
+# identity link means we use the same units in the interpretation
+# outcome = did something happen on not (probability), B is the log-odds
+
+
+summary(m1)
+
+# intercept: the log-odds of admission for a male is -0.22013 (intercept for male)
+# the log odds ratio for female to male is -0.61035 (slope for female)
+# the log odds for female is -0.22013 + (-0.61035) <- (intercept for female)
+
+# now, how do we interpret, get back to a multiplicative measurement 
+# (a factor of odds)
+
+exp(-0.61035) 
+# women's odds are different than men's by a factor of  0.54 (odds ratio)
+  # women's odds therefore are:  men's odds * odds ratio = 
+(.445/(1-.445)) * .5431607 # = 0.4355072, women's odds of admission are 0.435
+# probability for women admission?
+exp(0.4355072)/ (1+exp(0.4355072)) # 60% probability of admission
+# mens odds to probability 
+exp(.445/(1-.445)) / (1 + exp(.445/1-.445)) # men are 111% like to be accepted
+# womens odds of being rejected are 84% times greater than men
+  
+# logit model conditional on department
+
+m2 <- glm(admitted ~ female + Dept, 
+          data = d, 
+          family = binomial(link = "logit")) # really Bernoulli
+
+summary(m2)
+
+# what about a women applying to department C?
+0.582 + 0.1 + (-1.263)
+# gives us log odds of being admitted to department C
+
+exp( -0.581)/ (1 + exp( -0.581)) 
+# 35.87% probability of admission
+  
+# what about a man and department C?
+0.582 - 1.263 # -0.681 log odds
+# convert to probability 
+exp( -0.681)/ (1 + exp( -0.681))  
+# 33.60% prob ability of admission for man in dept C
+
+# difference of probability of a woman vs man getting into dept C
+.359 -.336 
+# "women's probability of being admitted is 2.3 more percentage points 
+# likely to be admitted to department C"
+
+```
+
+
+Now lets find the gender differences for A and for dept F?
+
+```{r}
+# department A
+
+# what is the log odds for both male and female?
+# female A
+0.582 + 0.100
+#probability conversion
+exp(0.682)/(1+ exp(0.682))
+
+# percentage for females in dept A = 66.42%
+# male A
+0.582
+# probability
+exp(0.582)/(1+exp(0.582))
+
+# percentage for males in dept A = 64.15%
+
+# percentage difference?
+ 0.6641849 - 0.641527
+ 
+# 2.26579 percentage points, 
+# or close to 2.3 percentage points difference for males to females in department A
+ 
+ 
+ 
+# department F
+ 
+# log odds for male and female
+ 
+# Female F log odds
+ 0.582 + 0.1 -3.306
+# convert the log odds to percentage
+ exp(-2.624)/(1+exp(-2.624)) # women are 6.76% likely to be admitted to dept F
+ 
+# Male F log odds
+ 0.582 - 3.306
+# convert to percentage
+ exp( -2.724)/(1+exp( -2.724)) # men are 6.16% likely to be admitted to dept F
+ 
+ # percentage point differences
+ 0.0676097-0.06157194
+ 
+# 0.6 percentage point difference for males and females in department F
+
+
+```
+
+
+What about average difference between male and female?
+
+```{r}
+library(marginaleffects)
+# weighting by department (multiply by prob a person would apply to each dept)
+# the differences between male and female are proportionally 
+# affected by the values of weight given to each dept
+table(d$Dept) / nrow(d)
+
+# now marginal effects do this, "average marginal effect"
+me <- marginaleffects(m2, variables = "female") # marg. over department
+summary(me)
+
+# "the average marginal effect of gender is a 2 percentage point"
+# basically a 2 percentage point difference on average...
+```
+
+
+```{r}
+exp(-2.944439)/(1+exp(-2.944439))
+
+0.05/.95
+
+```
+
+

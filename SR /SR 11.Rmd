@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 **11E1. If an event has probability 0.35, what are the log-odds of this event?**\
 ```{r}
 library(rethinking)
-logit(0.35)
+log(0.35/(1-0.35))
 ```
 
 The log-odds are -0.62.\
@@ -21,7 +21,7 @@ The log-odds are -0.62.\
 **11E2. If an event has log-odds 3.2, what is the probability of this event?**\
 
 ```{r}
-inv_logit(3.2)
+exp(3.2)/(1+exp(3.2))
 ```
 
 The probability is 0.96.\
@@ -29,44 +29,57 @@ The probability is 0.96.\
 **11E3. Suppose that a coefficient in a logistic regression has value 1.7. What does this imply about the proportional change in odds of the outcome?** \
 
 ```{r}
-exp(1.7)
+# probability
+exp(1.7)/(1+exp(1.7))
+
+# odds from probability
+0.8455347/(1- 0.8455347)
 ```
-1.7 represents the log odds, so to get the odds can be shown be exponentiating the log-odds. Each time the predictor is increased by one-unit, the odds will multiplicatively increase by 5.473947.\
+A one-unit increase in the predictor variable multiplies the odds of having the outcome by 5.47. It increases by about 400%. \
 
 **11E4. Why do Poisson regressions sometimes require the use of an offset? Provide an example.**\
 
-Poisson distributions assume that the rate of events is constant over time, so...when the exposure varies across observations (which can naturally happened from lengths of observation, area of sampling, or intensity of sampling varying) then you will need to add an offset term to the linear model. For example, if we are looking at the popularity of a specific magazine in different areas by measuring the amount purchased at two randomly selected stores in two different geographic areas this may be a time when we need an offset. If one store tallies purchases by day and the other tallies purchases by week, this mismatch in record keeping for the observation would be a reason we would need an offset. If using the Poisson model, we would need to add the logged values of the exposure to our linear model as an offset.
+Poisson distributions assume that the rate of events is constant over time, so...when the exposure varies across observations (which can naturally happened from lengths of observation, area of sampling, or intensity of sampling varying) then you will need to add an offset term to the linear model. For example, if we are looking at the popularity of a specific magazine in different areas by measuring the amount purchased at two randomly selected stores in two different geographic areas this may be a time when we need an offset (I guess in this case though, there would have to be an infinite number of magazines in production, or at least an amount unknown to us). If one store tallies purchases by day and the other tallies purchases by week, this mismatch in record keeping for the observation would be a reason we would need an offset. If using the Poisson model, we would need to add the logged values of the exposure to our linear model as an offset.\
 
 # Medium Questions\
 
 **11M1. As explained in the chapter, binomial data can be organized in aggregated and dis-aggregated forms, without any impact on inference. But the likelihood of the data does change when the data are converted between the two formats. Can you explain why?**\
 
-[need answer]
+The likelihood changes because with dis-aggregated data, there is only one way to produce the exact expected ordered outcome received by the model. The model would be more surprised by the dis-aggregated data because it has so much information and will fit it identical to the values/order given to it.\
+
+On the other hand, with aggregated data, the model will be able to think of many ways to provide the outcome as it is the sum of the individual data points in one outcome value. In this way, the model will be less surprised by the outcome because it had room to think about all of the possible ways to create that outcome due to our input being less specific.\
+
+Because of this difference, the likelihood for the data in either form will be different. When the model is more surprised by the dis-aggregated data, this is because the likelihood for that specific outcome was greater from the information provided. However, with the aggregated data, the likelihoods are smaller for each outcome it predicted. \
 
 **11M2. If a coefficient in a Poisson regression has value 1.7, what does this imply about the change in the outcome?**\
 ```{r}
 exp(1.7)
 ```
-This one is a little bit harder. The change depends on the values of the other parameters. We will solve this like we did the other questions calculating the change in odds... so in a Poisson model, a 1.7 coefficient will lead to a proportional change of 5.473947 when the predictor variable increases by one unit. 
+We expect y to be multiplied by 5.47 for each additional unit of x. \
 
 **11M3. Explain why the logit link is appropriate for a binomial generalized linear model.**\
-In a  binomial model the continuous values from the model are translated to a probability space between 0 and 1. The logit link does this. 
+In a binomial model the continuous values from the model are translated to a probability space between 0 and 1. The logit link does this (meaning that it is also constrained between 0 and 1). \
 
 **11M4. Explain why the log link is appropriate for a Poisson generalized linear model.**\
-For the poisson model, we need to be able to place the continuous values in a space that is from 0 to positive whole numbers. The log link function allows us to do this. 
+For the poisson model, we need to be able to place the continuous values in a space that is from 0 to positive whole numbers. The log link function allows us to do this (meaning that it helps make sure our linear model is working only with positive numbers). 
 
 **11M5. What would it imply to use a logit link for the mean of a Poisson generalized linear model? Can you think of a real research problem for which this would make sense?**\
 
-This would mean that we are using a model where the know the maximum count (at most one event within each interval). However, in this case that is not the beauty of Poisson's function (it is able to be used when we don't know the maximum), so instead it would make more since to use a binomial model. [RECHECK THIS IDK]
+Using the logit link with Poisson is an interesting idea because logit is used when the outcome is all 0s and 1, and we use Poisson as the likelihood when thte outcome is an all positive count for something. However, we can also have a y=0 with Poisson, so I feel like there MIGHT be a way to use both together. If we are trying to count something where the only possible outcome for the count is 0 or 1, then we could potentially use these two things together. It is hard for me to conceptualize a case when this would be true.
+
+[NEED TO CONTINUE THIS, thinking something like counting people who lose hearing in one ear.... idk) \
 
 **11M6. State the constraints for which the binomial and Poisson distributions have maximum entropy. Are the constraints different at all for binomial and Poisson? Why or why not?**\
 
-Both have the same constraints:\
+Both binomial and Poisson models are count models. 
+
+Both have maximum entopy with the same constraints:\
 
 1. constant probability of event across all trials\
 2. discrete outcomes that are binary. \
 
 They are the same because Poisson models are a type of binomial model.\
+
 **11M7. Use quap to construct a quadratic approximate posterior distribution for the chimpanzee model that includes a unique intercept for each actor, m11.4 (page 330). Compare the quadratic approximation to the posterior distribution produced instead from MCMC. Can you explain both the differences and the similarities between the approximate and the MCMC distributions? Relax the prior on the actor intercepts to Normal(0,10). Re-estimate the posterior using both ulam and quap. Do the differences increase or decrease? Why?**\
 ```{r}
 library(tidyverse)
@@ -132,13 +145,11 @@ m11.4q_r <- quap(
 precis(m11.4q_r, 2)
 ```
 
-
-All of the variables seem extremely similar. A[2] has a higher difference than other parameters. With the more relaxed prior, the difference between a[2] becomes even larger. I wonder if this difference has something to do with the fact that `quap` assumes the shape is normally distributed while `ulam` assumes no shape.  
+All of the variables seem extremely similar with negligible differences for both the `ulam` and `quap` model with the original priors. This makes sense as the model is the same in most essence, just produced through different means. Actor[2] has a greater difference between `ulam` (11.46) and `quap` (6.99) models with the relaxed priors (which makes sense because the priors allow for more wiggle room with predictions). I also wonder if this greater difference has something to do with the fact that `quap` assumes the shape is normally distributed while `ulam` assumes no shape, (not really sure why we see such a big difference for a[2])?
 
 **11M8. Revisit the data(Kline) islands example. This time drop Hawaii from the sample and refit the models. What changes do you observe?**\
 
 ```{r}
-
 # get the data together
 data(Kline)
 k <- Kline %>% 
@@ -146,7 +157,6 @@ k <- Kline %>%
   mutate(cid = ifelse(contact == "high", 2, 1)) %>% 
   mutate(T = total_tools) %>% 
   select(T,P, cid, culture)
-
 
 # interaction model with Hawaii
 m11.10H <- ulam(
@@ -184,3 +194,4 @@ precis(m11.10,2)
 
 ```
 
+a[2] and b[2] are almost identical, but a[1] and b[1] show a larger change in values when we drop Hawaii. I think what's most important here though is that the slopes are so much more similar. This makes sense, because now that Hawaii is dropped the models estimate a slope around a tighter set of values.  
