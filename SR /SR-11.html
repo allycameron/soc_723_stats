@@ -485,15 +485,21 @@ problem for which this would make sense?</strong><br />
 </p>
 <p>Using the logit link with Poisson is an interesting idea because
 logit is used when the outcome is all 0s and 1, and we use Poisson as
-the likelihood when thte outcome is an all positive count for something.
+the likelihood when the outcome is an all positive count for something.
 However, we can also have a y=0 with Poisson, so I feel like there MIGHT
 be a way to use both together. If we are trying to count something where
 the only possible outcome for the count is 0 or 1, then we could
 potentially use these two things together. It is hard for me to
 conceptualize a case when this would be true.</p>
-<p>[NEED TO CONTINUE THIS, thinking something like counting people who
-lose hearing in one ear…. idk)<br />
-</p>
+<p>Example: I am thinking maybe something like seeing how many people
+within a family apply for food stamps within the year (don’t know much
+about this, and im sure it’s by family, but in this example let’s assume
+people can each apply, but only ONCE). In this example we would keep the
+counts dis-aggregated so that its 1 count per person in the family,
+instead of by family. So, this would mean that we are doing counts
+(instead of viewing as binary 0/1, as it would help leave the potential
+of aggregating if that was something someone wanted to do later), AND
+allow for the logit link.</p>
 <p><strong>11M6. State the constraints for which the binomial and
 Poisson distributions have maximum entropy. Are the constraints
 different at all for binomial and Poisson? Why or why
@@ -551,17 +557,17 @@ m11.4 &lt;- ulam(
   ),
   data = d, chains = 4, log_lik = TRUE
 )</code></pre>
-<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b18d1fe1b.stan&#39;, line 2, column 4: Declaration
+<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a2b8c4c73.stan&#39;, line 2, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b18d1fe1b.stan&#39;, line 3, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a2b8c4c73.stan&#39;, line 3, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b18d1fe1b.stan&#39;, line 4, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a2b8c4c73.stan&#39;, line 4, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
@@ -625,18 +631,18 @@ m11.4 &lt;- ulam(
 ## Mean chain execution time: 0.4 seconds.
 ## Total execution time: 2.1 seconds.</code></pre>
 <pre class="r"><code>precis(m11.4, 2)</code></pre>
-<pre><code>##             mean        sd        5.5%       94.5%     n_eff     Rhat4
-## a[1] -0.46618288 0.3400820 -1.00566625  0.07610569  629.6238 0.9999978
-## a[2]  3.86393468 0.7617436  2.70148335  5.12721110 1364.4321 0.9990744
-## a[3] -0.76957458 0.3609386 -1.35167375 -0.16555647  616.6398 0.9995839
-## a[4] -0.76355847 0.3456667 -1.33003550 -0.20935610  615.2692 0.9997126
-## a[5] -0.46551419 0.3469917 -1.02897955  0.08839797  681.5597 0.9998287
-## a[6]  0.45614450 0.3462026 -0.08961901  1.01095855  659.6837 0.9996335
-## a[7]  1.93712683 0.4240091  1.26665980  2.61736955  796.4988 0.9991859
-## b[1] -0.02618776 0.3047229 -0.52663013  0.45204383  571.1091 0.9999525
-## b[2]  0.50069928 0.3038003  0.02620898  0.97375482  579.3169 1.0008018
-## b[3] -0.36647360 0.2992139 -0.84481888  0.10393895  575.4755 0.9992621
-## b[4]  0.38518361 0.2956035 -0.07920532  0.85176024  561.8277 0.9993932</code></pre>
+<pre><code>##             mean        sd        5.5%       94.5%     n_eff    Rhat4
+## a[1] -0.46136199 0.3225213 -0.97344318  0.05495489  868.2266 1.006118
+## a[2]  3.89029962 0.7497037  2.76758410  5.14060690 1236.1168 1.001863
+## a[3] -0.75443466 0.3230228 -1.26023870 -0.24207341  836.9282 1.003528
+## a[4] -0.75837201 0.3293034 -1.28685690 -0.23875247  928.0738 1.004162
+## a[5] -0.45986848 0.3151758 -0.96615059  0.02626769  875.0099 1.003842
+## a[6]  0.46799107 0.3234881 -0.06288771  0.97295274  869.9442 1.004390
+## a[7]  1.95305077 0.4094828  1.31100890  2.60746645 1102.3210 1.000333
+## b[1] -0.03051784 0.2708472 -0.45955994  0.40596869  803.9503 1.003871
+## b[2]  0.49229831 0.2762457  0.05426559  0.94833135  849.1480 1.005736
+## b[3] -0.36877647 0.2725757 -0.80027607  0.06314601  775.1888 1.003081
+## b[4]  0.37736853 0.2722827 -0.07367245  0.79951224  745.9512 1.006564</code></pre>
 <pre class="r"><code># using quap with original priors
 
 m11.4q &lt;- quap(
@@ -649,17 +655,17 @@ m11.4q &lt;- quap(
 
 precis(m11.4q, 2)</code></pre>
 <pre><code>##             mean        sd        5.5%       94.5%
-## a[1] -0.43922100 0.3276019 -0.96279210  0.08435009
-## a[2]  3.70607909 0.7217554  2.55257450  4.85958368
-## a[3] -0.73277338 0.3329761 -1.26493347 -0.20061328
-## a[4] -0.73275162 0.3329756 -1.26491087 -0.20059237
-## a[5] -0.43921759 0.3276019 -0.96278862  0.08435344
-## a[6]  0.46892959 0.3317744 -0.06131003  0.99916921
-## a[7]  1.90505428 0.4136435  1.24397213  2.56613643
-## b[1] -0.04065191 0.2837320 -0.49411038  0.41280656
-## b[2]  0.47215299 0.2842163  0.01792046  0.92638551
-## b[3] -0.37835690 0.2852443 -0.83423234  0.07751855
-## b[4]  0.36201481 0.2838328 -0.09160481  0.81563443</code></pre>
+## a[1] -0.43920261 0.3276017 -0.96277341  0.08436819
+## a[2]  3.70603916 0.7217442  2.55255247  4.85952585
+## a[3] -0.73275099 0.3329757 -1.26491042 -0.20059155
+## a[4] -0.73275055 0.3329757 -1.26490997 -0.20059113
+## a[5] -0.43920206 0.3276017 -0.96277285  0.08436873
+## a[6]  0.46895247 0.3317747 -0.06128764  0.99919258
+## a[7]  1.90506161 0.4136435  1.24397939  2.56614382
+## b[1] -0.04066154 0.2837319 -0.49411989  0.41279680
+## b[2]  0.47213982 0.2842162  0.01790736  0.92637228
+## b[3] -0.37835907 0.2852441 -0.83423426  0.07751611
+## b[4]  0.36201169 0.2838328 -0.09160789  0.81563128</code></pre>
 <pre class="r"><code># now the models with the relaxed prior. 
 
 # ulam
@@ -672,17 +678,17 @@ m11.4_r &lt;- ulam(
   ),
   data = d, chains = 4, log_lik = TRUE
 )</code></pre>
-<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b67cf89c.stan&#39;, line 2, column 4: Declaration
+<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a4c0d849a.stan&#39;, line 2, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b67cf89c.stan&#39;, line 3, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a4c0d849a.stan&#39;, line 3, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b67cf89c.stan&#39;, line 4, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a4c0d849a.stan&#39;, line 4, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
@@ -701,7 +707,7 @@ m11.4_r &lt;- ulam(
 ## Chain 1 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 1 Iteration: 900 / 1000 [ 90%]  (Sampling) 
 ## Chain 1 Iteration: 1000 / 1000 [100%]  (Sampling) 
-## Chain 1 finished in 0.6 seconds.
+## Chain 1 finished in 0.5 seconds.
 ## Chain 2 Iteration:   1 / 1000 [  0%]  (Warmup) 
 ## Chain 2 Iteration: 100 / 1000 [ 10%]  (Warmup) 
 ## Chain 2 Iteration: 200 / 1000 [ 20%]  (Warmup) 
@@ -727,7 +733,7 @@ m11.4_r &lt;- ulam(
 ## Chain 3 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 3 Iteration: 900 / 1000 [ 90%]  (Sampling) 
 ## Chain 3 Iteration: 1000 / 1000 [100%]  (Sampling) 
-## Chain 3 finished in 0.6 seconds.
+## Chain 3 finished in 0.5 seconds.
 ## Chain 4 Iteration:   1 / 1000 [  0%]  (Warmup) 
 ## Chain 4 Iteration: 100 / 1000 [ 10%]  (Warmup) 
 ## Chain 4 Iteration: 200 / 1000 [ 20%]  (Warmup) 
@@ -740,24 +746,24 @@ m11.4_r &lt;- ulam(
 ## Chain 4 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 4 Iteration: 900 / 1000 [ 90%]  (Sampling) 
 ## Chain 4 Iteration: 1000 / 1000 [100%]  (Sampling) 
-## Chain 4 finished in 0.6 seconds.
+## Chain 4 finished in 0.5 seconds.
 ## 
 ## All 4 chains finished successfully.
-## Mean chain execution time: 0.6 seconds.
-## Total execution time: 2.6 seconds.</code></pre>
+## Mean chain execution time: 0.5 seconds.
+## Total execution time: 2.2 seconds.</code></pre>
 <pre class="r"><code>precis(m11.4_r,2)</code></pre>
 <pre><code>##            mean        sd        5.5%       94.5%    n_eff    Rhat4
-## a[1] -0.3582446 0.3431612 -0.91877643  0.18927980 554.7141 1.003306
-## a[2] 11.4514951 5.4496711  4.91827420 21.53150450 694.6646 1.004938
-## a[3] -0.6637145 0.3573300 -1.22809395 -0.10426690 503.6591 1.006339
-## a[4] -0.6682309 0.3568860 -1.26488005 -0.10145843 535.2397 1.005292
-## a[5] -0.3538370 0.3529614 -0.93715276  0.22178951 481.4564 1.006089
-## a[6]  0.5866910 0.3516866  0.01444818  1.13710980 540.1588 1.003566
-## a[7]  2.1834410 0.4602937  1.47603635  2.95169490 623.3782 1.002257
-## b[1] -0.1509892 0.3004746 -0.63930246  0.33188640 481.3246 1.005828
-## b[2]  0.3839065 0.2943075 -0.09429273  0.85780485 440.6061 1.007733
-## b[3] -0.4991552 0.3039003 -1.00637265 -0.01670775 472.4809 1.002490
-## b[4]  0.2730792 0.3045310 -0.21872106  0.77964737 466.0867 1.005855</code></pre>
+## a[1] -0.3685248 0.3463168 -0.93069995  0.18750036 432.7257 1.003426
+## a[2] 10.9661383 5.1334705  4.92015615 20.46683850 929.6401 1.001693
+## a[3] -0.6817915 0.3552526 -1.26470675 -0.11348150 456.4972 1.002575
+## a[4] -0.6798389 0.3542047 -1.26120110 -0.09824038 468.2046 1.002159
+## a[5] -0.3666278 0.3601038 -0.94792534  0.20018968 481.6010 1.001857
+## a[6]  0.5883250 0.3549104  0.01255422  1.14212230 410.1892 1.002618
+## a[7]  2.1917445 0.4520668  1.51557730  2.94858925 567.7387 1.005343
+## b[1] -0.1377452 0.3103798 -0.62918221  0.37233747 394.3316 1.000513
+## b[2]  0.3922883 0.2972574 -0.08507759  0.86898622 388.9618 1.004076
+## b[3] -0.4953557 0.3164677 -0.99536449  0.01666067 420.7316 1.002874
+## b[4]  0.2793672 0.3011353 -0.19897519  0.74805827 396.4897 1.003758</code></pre>
 <pre class="r"><code># quap
 
 m11.4q_r &lt;- quap(
@@ -770,17 +776,17 @@ m11.4q_r &lt;- quap(
 
 precis(m11.4q_r, 2)</code></pre>
 <pre><code>##            mean        sd        5.5%        94.5%
-## a[1] -0.3515998 0.3477652 -0.90739565  0.204196148
-## a[2]  6.9968585 3.5524679  1.31932868 12.674388379
-## a[3] -0.6543201 0.3537051 -1.21960913 -0.089031069
-## a[4] -0.6542105 0.3537022 -1.21949493 -0.088925990
-## a[5] -0.3516989 0.3477665 -0.90749688  0.204099174
-## a[6]  0.5814780 0.3522760  0.01847290  1.144483087
-## a[7]  2.1195949 0.4524356  1.39651543  2.842674446
-## b[1] -0.1422378 0.3011513 -0.62353582  0.339060174
-## b[2]  0.3815005 0.3009930 -0.09954455  0.862545464
-## b[3] -0.4905516 0.3030983 -0.97496120 -0.006141923
-## b[4]  0.2692100 0.3007608 -0.21146385  0.749883788</code></pre>
+## a[1] -0.3520172 0.3477653 -0.90781326  0.203778819
+## a[2]  6.9921781 3.5457915  1.32531837 12.659037770
+## a[3] -0.6546822 0.3537051 -1.21997129 -0.089393102
+## a[4] -0.6546823 0.3537051 -1.21997137 -0.089393176
+## a[5] -0.3520174 0.3477653 -0.90781346  0.203778625
+## a[6]  0.5811611 0.3522749  0.01815777  1.144164496
+## a[7]  2.1186197 0.4523590  1.39566266  2.841576748
+## b[1] -0.1418631 0.3011498 -0.62315867  0.339432458
+## b[2]  0.3816103 0.3009912 -0.09943174  0.862652318
+## b[3] -0.4901278 0.3030961 -0.97453382 -0.005721743
+## b[4]  0.2695766 0.3007596 -0.21109521  0.750248505</code></pre>
 <p>All of the variables seem extremely similar with negligible
 differences for both the <code>ulam</code> and <code>quap</code> model
 with the original priors. This makes sense as the model is the same in
@@ -814,17 +820,17 @@ m11.10H &lt;- ulam(
    ),
    data = k, chains = 4, log_lik = TRUE
  )</code></pre>
-<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b70b8d62.stan&#39;, line 2, column 4: Declaration
+<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a535b5664.stan&#39;, line 2, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b70b8d62.stan&#39;, line 3, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a535b5664.stan&#39;, line 3, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b70b8d62.stan&#39;, line 5, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a535b5664.stan&#39;, line 5, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
@@ -888,11 +894,11 @@ m11.10H &lt;- ulam(
 ## Mean chain execution time: 0.1 seconds.
 ## Total execution time: 0.5 seconds.</code></pre>
 <pre class="r"><code>precis(m11.10H,2)</code></pre>
-<pre><code>##            mean         sd        5.5%     94.5%    n_eff     Rhat4
-## a[1] 1.71230338 0.27394047 1.287791000 2.1441708 892.6083 1.0040587
-## a[2] 2.82820569 0.44956983 2.100141500 3.5399530 962.9166 0.9991297
-## b[1] 0.18974676 0.02786884 0.144909910 0.2331496 912.2312 1.0036689
-## b[2] 0.08938774 0.04989153 0.008851355 0.1677228 969.2889 0.9996060</code></pre>
+<pre><code>##            mean         sd        5.5%     94.5%    n_eff    Rhat4
+## a[1] 1.67781266 0.28057032 1.226841550 2.1362645 730.1196 1.002445
+## a[2] 2.84090570 0.46752185 2.087961600 3.6036076 604.3887 1.003208
+## b[1] 0.19346697 0.02812609 0.147293415 0.2381109 725.8921 1.003332
+## b[2] 0.08793306 0.05205742 0.003430135 0.1704941 595.3561 1.003911</code></pre>
 <pre class="r"><code># without Hawaii
 
 k2  &lt;- Kline %&gt;% 
@@ -911,17 +917,17 @@ m11.10 &lt;- ulam(
    ),
    data = k2, chains = 4, log_lik = TRUE
  )</code></pre>
-<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b1f7eaa71.stan&#39;, line 2, column 4: Declaration
+<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a3cc3be21.stan&#39;, line 2, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b1f7eaa71.stan&#39;, line 3, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a3cc3be21.stan&#39;, line 3, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpjvtqta/model-2b7b1f7eaa71.stan&#39;, line 5, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpx4T4Ql/model-3d9a3cc3be21.stan&#39;, line 5, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
@@ -985,11 +991,11 @@ m11.10 &lt;- ulam(
 ## Mean chain execution time: 0.1 seconds.
 ## Total execution time: 0.5 seconds.</code></pre>
 <pre class="r"><code>precis(m11.10,2)</code></pre>
-<pre><code>##            mean         sd        5.5%     94.5%    n_eff    Rhat4
-## a[1] 2.62094441 0.41896197  1.95292965 3.2822855 680.7399 1.001758
-## a[2] 2.84353575 0.44105127  2.15883575 3.5478316 551.2318 1.008273
-## b[1] 0.05839137 0.05264471 -0.02382940 0.1437381 678.0962 1.001458
-## b[2] 0.08728072 0.04878753  0.01010689 0.1643768 558.7381 1.009278</code></pre>
+<pre><code>##            mean         sd         5.5%     94.5%    n_eff     Rhat4
+## a[1] 2.64103192 0.45139290  1.949018900 3.4022968 585.4533 1.0013051
+## a[2] 2.82584225 0.48632693  2.057798250 3.6077660 510.4381 0.9993093
+## b[1] 0.05541986 0.05640320 -0.038728629 0.1431803 584.3227 1.0008474
+## b[2] 0.08970258 0.05414719  0.003532314 0.1766756 516.2419 0.9992939</code></pre>
 <p>a[2] and b[2] are almost identical, but a[1] and b[1] show a larger
 change in values when we drop Hawaii. I think what’s most important here
 though is that the slopes are so much more similar. This makes sense,

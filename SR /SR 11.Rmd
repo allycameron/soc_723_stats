@@ -65,9 +65,9 @@ For the poisson model, we need to be able to place the continuous values in a sp
 
 **11M5. What would it imply to use a logit link for the mean of a Poisson generalized linear model? Can you think of a real research problem for which this would make sense?**\
 
-Using the logit link with Poisson is an interesting idea because logit is used when the outcome is all 0s and 1, and we use Poisson as the likelihood when thte outcome is an all positive count for something. However, we can also have a y=0 with Poisson, so I feel like there MIGHT be a way to use both together. If we are trying to count something where the only possible outcome for the count is 0 or 1, then we could potentially use these two things together. It is hard for me to conceptualize a case when this would be true.
+Using the logit link with Poisson is an interesting idea because logit is used when the outcome is all 0s and 1, and we use Poisson as the likelihood when the outcome is an all positive count for something. However, we can also have a y=0 with Poisson, so I feel like there MIGHT be a way to use both together. If we are trying to count something where the only possible outcome for the count is 0 or 1, then we could potentially use these two things together. It is hard for me to conceptualize a case when this would be true.
 
-[NEED TO CONTINUE THIS, thinking something like counting people who lose hearing in one ear.... idk) \
+Example: I am thinking maybe something like seeing how many people within a family apply for food stamps within the year (don't know much about this, and im sure it's by family, but in this example let's assume people can each apply, but only ONCE). In this example we would keep the counts dis-aggregated so that its 1 count per person in the family, instead of by family. So, this would mean that we are doing counts (instead of viewing as binary 0/1, as it would help leave the potential of aggregating if that was something someone wanted to do later), AND allow for the logit link. 
 
 **11M6. State the constraints for which the binomial and Poisson distributions have maximum entropy. Are the constraints different at all for binomial and Poisson? Why or why not?**\
 
