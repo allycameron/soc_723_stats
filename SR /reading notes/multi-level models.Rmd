@@ -1,0 +1,580 @@
+---
+title: "multi-level models - reading"
+output: html_document
+date: "2023-01-31"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# 13. 1: Let's look at multi-level models. \
+
+```{r}
+library(rethinking) 
+library(tidyverse)
+data(reedfrogs)
+d <- tibble(reedfrogs)
+d <- d %>% 
+  mutate(tank = 1:nrow(d))
+```
+
+Each row is a tank (so it seems like the rows in this case are aggregated data)\
+  - Multiple observations within ONE case = cluster\
+  - we want to measure the intercept for each cluster, and variation between clusters\
+  - vary intercepts -> varying effects -> use a unique intercept parameter for each cluster\
+  
+## Let's make a regular GLM for the tank example (page 402)\
+  
+```{r}
+dat <- d %>% 
+  mutate(S = surv) %>% 
+  mutate(N = density)
+
+# approximate posterior
+m13.1 <-ulam(
+alist(
+S ~ dbinom(N,p),
+logit(p) <- a[tank],
+a[tank] ~ dnorm(0,1.5)
+), data = dat,chains = 4, log_lik = TRUE)
+
+precis(m13.1, 2)
+```
+  
+  - 48 different intercepts, one for each cluster (tank)\
+  - To get each tank’s expected survival probability, just take one of the a values and then use the logistic transform\
+
+```{r}
+# let's look at the interpretation of one of the intercepts
+
+# compute by using equation to transform from log-odds to probability
+
+exp(1.68) / (1 + exp(1.68))
+```
+
+Tank 1's expected survival probability is 0.84. \
+
+## multi-level model for tadpole example (page 403)\
+
+  - the model will use adaptive pooling to gather information from *across* tanks. \
+  - All that is required to enable adaptive pooling is to make the prior for the a parameters a function of some new parameters (almost like nesting)\
+      - hyper-parameters -> they are parameters for the parameters \
+      - hyper-priors -> they are priors of the hyper-parameters\
+      
+  - we have to use `ulam` for these models instead of `quap` (see page 403)\
+  
+```{r}
+m13.2  <- ulam(
+alist(
+S ~ dbinom(N,p),
+logit(p) <- a[tank],
+a[tank] ~ dnorm(a_bar, sigma), 
+# normal distribution describing distribution of tanks
+# notice how the parameter from the equation now has its own hyper-parameter
+a_bar ~ dnorm(0, 1.5), # hyper-parameter and hyper-priors
+sigma ~ dexp(1)), data = dat, chains = 4, log_lik = TRUE)
+
+precis (m13.2, 2)
+```
+- This model provides posterior distributions for 50 parameters: one overall sample intercept (a-bar), the standard deviation among tanks (sigma), and then 48 per-tank intercepts.\
+  
+
+## Let's do some model comparison\
+
+```{r}
+compare( m13.1,m13.2)
+
+```
+notice the pWAIC -> this is the number of effective parameters (sounds like it means the number of parameters that allow the model to make predictions?)\
+
+  - **shrinkage**: the predictions shrink towards the median survival proportion of the population (outcome) away from the raw data's outcome outputs\
+      - notice that the estimates for the smaller tanks have shrunk farther from the blue points. Varying intercepts for the smaller tanks, with smaller sample sizes, shrink more. (**smaller clusters shrink more**)\
+      - shrinkage is stronger the further away the raw data estimate is from the population median \
+
+  - pooling -> each tank provides information that can be used to improve the estimates for all other tanks. \
+  
+  -  working with the posterior -> you can sample the posterior per usual\
+
+### NEW PRIOR ALERT: **half-normal distribution** (overthinking pg. 408)\
+  A half-Normal distribution is a normal distribution with all mass above zero.
+  
+```{r}
+
+# change prior to half normal... not sure why?
+m13.2a  <- ulam(
+alist(
+S ~ dbinom(N,p),
+logit(p) <- a[tank],
+a[tank] ~ dnorm(a_bar, sigma), 
+a_bar ~ dnorm(0, 1.5), 
+sigma ~ dhalfnorm(0,1)), # using half-normal prior
+data = dat, chains = 4, log_lik = TRUE)
+
+# model comparison
+
+compare( m13.1,m13.2, m13.2a)
+
+```
+
+# 13.2: pooling data, over-fitting and under-fitting\
+  
+  * now the tanks are ponds...\
+      1. complete pooling: assuming all ponds are the same (no variation)\
+            - ignore varying intercepts, use the overall mean across ponds\
+            - estimate of the intercept is unlikely to match any of the ponds\
+            - THIS IS UNDER-FITTING\
+      2. no pooling: assume that each pond tells us nothing about the others (infinite variation)\
+           - now we just use the outcome from each pond to predict\
+           - small amount of data went into each cluster outcome variable\
+           - high error for these estimates \
+           - THIS IS OVER-FITTING\
+        
+      3. partial pooling: adaptive regularizing priors\
+           - produces estimates for each cluster that are less under-fit than grand mean and less over-fit than the no-pooling estimates\
+           - tend to be better estimates of the TRUE per-cluster (per-pond) means
+               - especially for clusters with less information
+
+
+## Simulating and validating models
+
+basically, we. are going to simulate all the values for the model
+
+$$
+S_i \sim Binomial(N_i,p_i)\\
+logit(p_i) = \alpha_{POND[i]}\\
+\alpha_j \sim Normal(\bar\alpha, \sigma)\\
+\bar \alpha \sim Normal(0,1.5)\\
+\sigma \sim Exponential(1)
+$$
+
+**What do each of the parameters mean?**
+$\bar \alpha$, the average log-odds of survival in the entire population of ponds\
+$\sigma$, the standard deviation of the distribution of log-odds of survival among ponds\
+$\alpha$, a vector of individual pond intercepts, one for each pond\
+
+### Assign values to your parameters\
+- our priors are not apart of our model now (in simulation)\
+
+```{r}
+a_bar <-1.5 # chosen mean value for pop
+sigma <-1.5 # chosen deviation for pop
+nponds <- 60 #simulating 60 ponds (cases)
+Ni <-as.integer(rep(c(5,10,25,35),each=15)) 
+# different densities (input, 15 5s, 15 10s, 15 25s, 15 35s = 60)
+```
+
+`a_bar` and `sigma` define a Gaussian distribution of individual pond log-odds survival\
+
+now we need to simulate with this distribution but across our 60 ponds.\
+
+```{r}
+set.seed(5005)
+a_pond <- rnorm(nponds,mean = a_bar, sd = sigma) 
+# log odds of survival for each pond
+
+
+# let's put the information into a tibble
+dsim <- tibble(a_pond) %>% 
+  mutate(true_a = a_pond) %>% # output, survival simulate
+  mutate(pond = 1:nponds) %>% # pond index
+  mutate(Ni = Ni) %>% # simulated initial tadpole count
+  select(pond, Ni, true_a)
+```
+### Simulate surivors (outcome)\
+```{r}
+dsim <- dsim %>% 
+  mutate( Si = rbinom(nponds,prob=logistic(dsim$true_a),size=dsim$Ni))
+```
+### compute no-pooling estimates\
+- basically, we are going to calculate the survival proportions \
+
+```{r}
+dsim <- dsim %>% 
+  mutate(p_nopool = Si/Ni)
+```
+
+### calculating partial-pooling estimates\
+
+#### step one: for this, we actually have to utilize the model\
+```{r}
+m13.3 <-ulam(
+alist(
+Si ~ dbinom(Ni, p),
+logit(p) <- a_pond[pond],
+a_pond[pond] ~ dnorm(a_bar, sigma),
+a_bar ~ dnorm(0,1.5),
+sigma ~ dexp(1)
+), data = dsim, chains = 4)
+
+
+precis( m13.3,depth=2)
+```
+
+#### step two: let's predict survival proportions withe partial pool \
+
+```{r}
+
+# get samples first, because now working witht the posterior
+post <-extract.samples(m13.3)
+
+# transform the proportions with inv_logit from the samples
+dsim <- dsim %>% 
+  mutate(p_partpool = apply(inv_logit(post$a_pond), 2, mean))
+```
+
+#### step three: if you want to compare the survival proportions from the model to the the true per-pond probabilities do the following\
+
+```{r}
+dsim <- dsim %>% 
+  mutate(p_true = inv_logit(true_a))
+```
+
+#### step four: compute the absolute error between the the estimates and thet true varying effects\
+
+```{r}
+nopool_error <- abs(dsim$p_nopool - dsim$p_true)
+partpool_error <- abs(dsim$p_partpool- dsim$p_true)
+```
+
+
+#### step five: plot the results (the code for the plot sucks but book example on 413 is nice, would be nice to get some help with tidy code)\
+
+```{r}
+plot(1:60, nopool_error, xlab = "pond", ylab="absolute error",
+col = rangi2, pch = 16)
+points(1:60, partpool_error)
+```
+    - last information about pooling based on the example:\
+        - both kinds of estimates are much more accurate for larger ponds (right side); this arises because more data means better. estimates (assuming no confounding)\
+        - the no-pool estimates (shown by the blue points) have a higher average error in each group of ponds, except the medium ponds, partial pooling isn't always better\
+        - **while both kinds of estimates suffer from reduced sample size, the partial pooling estimates suffer less**\
+        what about shrinkage?\
+        - the ponds with the smallest sample size show the greatest improvement over the no-pooling estimates\
+        - shrinkage towards the mean results from trying to negotiate the under-fitting and over-fitting risks of the grand mean on one end adn the individual means of each pond on the other\
+        - the larger ponds shrink much less, because they contain more information and are prone to less over-fitting (they need less correcting)\
+        - there are some cases where no-pooling estimates are better -> often for the ponds with extreme probabilities of survival\
+        
+
+# 13.3: multiple types of clusters\
+
+- we're going to use the chimpanzee data now. there are 2 types of clusters: the clusters for each individual chimp and the experimental blocks for observations on the same day\
+
+
+```{r}
+
+# load data
+library(rethinking)
+data(chimpanzees)
+d <- tibble(chimpanzees)
+
+# transform data, and select only things needed for the model
+d <- d %>% 
+  mutate(treatment = 1 + prosoc_left + 2 * condition) %>% 
+  mutate(block_id = block) %>% 
+  mutate(treatment = as.integer(treatment)) %>% 
+  select(pulled_left, actor, block_id, treatment)
+
+set.seed(13)
+# create the model
+m13.4 <- ulam(
+alist(
+pulled_left ~ dbinom(1,p),
+logit(p) <- a[actor] + g[block_id] + b[treatment],
+b[treatment] ~ dnorm(0, 0.5),
+  # adaptive priors below
+a[actor] ~ dnorm(a_bar, sigma_a),
+g[block_id] ~ dnorm(0, sigma_g),
+  ## hyper-priors
+a_bar ~ dnorm(0,1.5),
+sigma_a ~ dexp(1),
+sigma_g ~ dexp(1)) , data = d, chains = 4, cores = 4, log_lik = TRUE)
+
+precis(m13.4, 2)
+```
+
+Let's look at a model that only varies the intercepts of the actors (7 chimps) and ignores the block variable. \
+
+```{r}
+set.seed(14) 
+
+# model without block
+m13.5 <- ulam(
+alist(
+pulled_left ~ dbinom(1,p),
+logit(p) <- a[actor] + b[treatment],
+b[treatment] ~ dnorm(0,0.5),
+a[actor] ~ dnorm(a_bar,sigma_a),
+a_bar ~ dnorm(0,1.5),
+sigma_a ~ dexp(1)
+), data = d, chains = 4, cores = 4, log_lik = TRUE)
+
+precis(m13.5, 2)
+
+# compare
+compare(m13.5, m13.4)
+```
+- relationship between shrinkage andd predicted variation -> the estimated variation across actors is much larger, meaning less shrinkage : LARGER VARIATION = LESS SHRINKAGE TOWARDS THE POP MEAN\
+- can we use partial pooling on the treatment variable (the thing we controlled within the experiment)?\
+Yes, if the index values could be reassigned without changing the meaning of the model, then partial pooling could help\
+
+Here is the model for each treatment, since each treatment (cluster) has a lot of data within each, partial pooling won't really help. \
+
+```{r}
+set.seed(15) 
+
+m13.6 <-ulam(
+alist(
+pulled_left ~ dbinom(1,p),
+logit(p) <- a[actor] + g[block_id] + b[treatment],
+b[treatment] ~ dnorm(0,sigma_b),
+a[actor] ~ dnorm(a_bar,sigma_a),
+g[block_id] ~ dnorm(0,sigma_g),
+a_bar ~ dnorm(0,1.5),
+sigma_a ~ dexp(1),
+sigma_g ~ dexp(1),
+sigma_b ~ dexp(1)
+), data = d, chains = 4, cores = 4, log_lik = TRUE)
+
+# compare coefficients for each model 
+coeftab( m13.4, m13.6)
+```
+
+# 13.4: divergent transitions and non-centered priors\
+
+**what are divergent transitions?**\
+- when posterior distribution is very steep in some region of a parameter's space, the energy used in the model is sometimes different from start and end. \
+
+**how do we fix?**\
+- reparameterize -> for any given statistical model, it can be written in several forms that are mathematically identical but numerically different. \
+
+### example number one: centered vs. non centered parameters
+
+```{r}
+m13.7 <- ulam(
+alist(
+v ~ normal(0, 3),
+x ~ normal(0, exp(v))
+), data = list(N = 1), chains = 4)
+
+precis( m13.7)
+```
+
+At low values of v, the distribution of x contracts around 0, this forms a steep valley (think of the end of a funnel) that the Hamiltonian particle needs to explore.\
+
+MAIN IDEA = DIVEGENT TRANSITIONS MEANS THAT WHEN YOU SAMPLE FROM THE DISTRIBUTION YOU WILL HAVE A VERY UNRELIABLE APPROXIMATION OF THE POSTERIOR DISTRIBUTION\
+
+the source of the funneling is the description we gave to x \
+$ x \sim Normal(0,exp(v))$. \
+
+As v changes, the distribution of x changes in a very inconvenient way. \
+
+This is known as the **centered parameterization** -> indicates that the distribution of x is conditional on one or more other parameters\
+
+**non-centered parameterization** -> moves the embedded parameter (v in this case), out of the defintiion of the other parameter\
+
+$$
+v \sim Normal(0,3)\\
+z \sim Normal(0,1)\\
+x = z * exp(v)\\
+$$
+
+```{r}
+# here is how we do this in code
+
+m13.7nc <-ulam(
+alist(
+v ~ normal(0, 3),
+z ~ normal(0, 1),
+gq > real[1]: x <<- z*exp(v) # standardizing x witih added z
+), data = list(N=1),chains = 4)
+
+precis(m13.7nc)
+```
+
+### example number 2: chimpanzees\
+
+- before reparameterizing, the first thing you can try is to increase the target acceptance rate `adapt_delta`. \
+
+When `adapt_delta` is set high, it results in smaller step size which means more accurate approximation\
+
+```{r}
+# let's run the model with a higher target acceptance rate
+set.seed(13) 
+m13.4b <- ulam(m13.4,chains = 4, cores = 4, control = list(adapt_delta = 0.99))
+
+# look at the divergent transitions
+divergent(m13.4b)
+divergent(m13.4) 
+```
+
+
+**see notes in notebook on a better way to uncenter in reality with a multi-level model**\
+
+- the vector z gives the standardized intercept for each actor and the vector x gives the standardized intercept for each block. \
+
+```{r}
+set.seed(13)
+m13.4nc <-ulam(
+alist(
+pulled_left ~ dbinom(1, p),
+# link function
+logit(p) <- a_bar + z[actor] * sigma_a + #actorintercepts
+x[block_id] * sigma_g + #blockintercepts
+b[treatment] ,
+  #parameters
+b[treatment] ~ dnorm(0, 0.5),
+z[actor] ~ dnorm(0, 1),
+x[block_id] ~ dnorm(0, 1),
+a_bar ~ dnorm(0, 1.5),
+sigma_a ~ dexp(1),
+sigma_g ~ dexp(1),
+# notice, before we would have used a and g, 
+# but they have been redefined with x and z
+gq> vector[actor]:a <<- a_bar + z * sigma_a,
+gq> vector[block_id]:g <<- x * sigma_g
+), data = d, chains = 4, cores = 4)
+
+precis(m13.4, 2)
+precis(m13.4nc, 2)
+```
+- **when should we use a non-centered prior?**\
+  1. when a cluster has low variation\
+  2. when we have a large number of units inside a cluster, but not much data for each unit\
+
+# 13.5 multi-level posterior predictions\
+- information criteria (WAIC - *the smaller the better because this means lower out of sample deviance*, AIC, BIC) provide a rough measure of a model's flexibility and therefore overfitting risk.\
+
+Let's look at two ways to compute posterior predictions\
+
+## with link function\
+
+```{r}
+# computing posterior predictions with link
+
+chimp  <- 2 # computing for actor number 2
+# create tibble with data for actor 2 from the cluster of 1 - 7
+d_pred <- tibble(actor = rep(chimp,4), treatment =1:4, block_id = rep(1,4))
+
+p <-link(m13.4, data = d_pred)
+p_mu <- apply(p,2,mean)
+p_ci <- apply(p,2,PI)
+```
+
+## by hand \
+
+### step one: extract samples\
+
+```{r}
+post <-extract.samples(m13.4)
+str(post)
+```
+there is a matrix of sample (2000) per variable (actor, block, treatment) within the cluster\
+
+```{r}
+dens(post$a[,5])
+# all samples for actor 5
+```
+### step 2: build our own link function\
+```{r}
+p_link  <- function(treatment, actor = 1, block_id = 1){
+  logodds <-with(post,
+                 a[ ,actor] + g[ ,block_id] + b[ ,treatment])
+  return( inv_logit(logodds))
+}
+```
+
+### step 3: compute predictions
+
+```{r}
+p_raw <- sapply(1:4, function(i) p_link(i, actor = 2, block_id = 1))
+p_mu <- apply(p_raw, 2, mean)
+p_ci <- apply(p_raw, 2, PI)
+```
+
+
+## posterior prediction for new clusters\
+
+- there is no unique procedure for generalizing predictions outside the sample\
+- let's imagine we leave out one actor and try to predict it from the other 6 -> how can we assess the model's accuracy for predicting actor number 7's behavior? We can't use any of the parameter estimates, because those only apply to other individuals. but we can make good use of the `a_bar` and `sigma_a` pparameters. these parameters describe a statistical populatoin of actors, and we can simulate new actors from it. \
+
+```{r}
+# step one: create link function
+# notice we ignore block
+    # we are predicting to new blocks
+    # so the effect should be about 0
+p_link_abar <- function(treatment) {
+  logodds <- with(post, a_bar + b[,treatment])
+return( inv_logit(logodds))
+}
+
+
+# step two: extract samples and summarize
+set.seed(013123)
+post <- extract.samples(m13.4)
+p_raw <- sapply(1:4, function(i) p_link_abar (i))
+p_mu <- apply(p_raw, 2, mean)
+p_ci <- apply(p_raw, 2, PI)
+
+
+# step three: plot 
+
+plot( NULL, xlab = "treatment", ylab = "proportion pulled left", main = "average actor",
+ylim = c(0,1), xaxt = "n", xlim = c(1,4))
+axis( 1, at = 1:4, labels = c("R/N","L/N","R/P","L/P"))
+lines(1:4, p_mu)
+shade( p_ci,1:4)
+```
+
+- grey region is the 89% compatibility interval for an actor with an average intercept. \
+
+```{r}
+# show variation among actors, need sigma_a
+
+# step one: create link function
+a_sim <- with(post, rnorm(length(post$a_bar), a_bar, sigma_a))
+p_link_asim <-function(treatment) {
+  logodds <-with(post,a_sim + b[ ,treatment])
+  return( inv_logit(logodds))
+}
+
+# step two : extract samples 
+  # (using same extraction from above
+  # so making code a comment)
+      # post <- extract.samples(m13.4)
+p_raw_asim <-sapply(1:4, function(i) p_link_asim(i))
+p_mu_asim <- apply(p_raw_asim, 2, mean)
+p_ci_asim <- apply(p_raw_asim, 2, PI)
+
+
+# step three: plot
+plot( NULL, xlab = "treatment", ylab = "proportion pulled left", main = "marginal of actor", ylim = c(0,1), xaxt = "n", xlim = c(1,4))
+axis( 1, at = 1:4, labels = c("R/N","L/N","R/P","L/P"))
+lines(1:4, p_mu_asim)
+shade( p_ci_asim, 1:4)
+```
+
+- when do I use which (average actors vs. marginal of actor)?\
+    - the predictions for an average actor help to visualize the impact of treatment\
+    - the predictions that are marginal of actor illustrate how variable different chimpanzees are, acccording to the model \
+    
+    
+making a plot that displayes both the treatment effect and the variation\
+```{r}
+# use the code from above, up until "p_raw_asim"
+plot( NULL, xlab = "treatment", ylab = "proportion pulled left", 
+      main = "simulated actors", ylim = c(0,1) ,xaxt = "n", xlim = c(1,4))
+axis(1,at = 1:4, labels = c("R/N","L/N","R/P","L/P"))
+for (i in 1:100) lines(1:4, p_raw_asim[i,], col = grau(0.25), lwd = 2)
+
+```
+
+## post-stratification: **how can we use a non-representative sample of a population to generate representative predictions for the same population?**\
+
+    - the idea is to fit a model in which each demographic slice of the population has its own outcome.\
+    - then the estimates of the outcomes are re-weighted using general census information about the full population (related to the outcome)\
+    - the samples can be small for each category, so MLM is used, it's called MRP (mister P) -> MULTILEVEL REGRESSION AND POST-STRATIFICATION\
+    - not justified to be used when the bias of the sample is caused by the outcome of interest\
+    
+    
