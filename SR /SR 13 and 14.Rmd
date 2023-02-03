@@ -7,16 +7,17 @@ date: "2023-01-31"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
 # chapter 14\
 
-## *13E1. Which of the following priors will produce more shrinkage in the estimates?*\
+### *13E1. Which of the following priors will produce more shrinkage in the estimates?*\
 $$
 (a) \alpha_{TANK} \sim Normal(0, 1)\\
 (b) \alpha_{TANK} \sim Normal(0, 2)\\
 $$
 Since larger variation means less shrinkage, (a) which has less variation will have more shrinkage.\
 
-## **13E2. Rewrite the following model as a multi-level model.**\
+### **13E2. Rewrite the following model as a multi-level model.**\
 $$
 y_i \sim Binomial(1, p_i)\\
 logit(p_i) = \alpha_{GROUP[i]} + \beta x_i\\
@@ -24,20 +25,20 @@ logit(p_i) = \alpha_{GROUP[i]} + \beta x_i\\
 \beta \sim Normal(0, 0.5)
 $$
 
-Rewritten: (Q: do I leave beta alone, or need to add to model as a seperate cluster??)\
+Rewritten:\
 $$
 y_i \sim Binomial(1, p_i)\\
 logit(p_i) = \alpha_{GROUP[i]} + \beta x_i\\
 \alpha_j \sim Normal(\bar\alpha, \sigma_{\alpha})\\
 \beta_j \sim Normal(0,0.5)\\
 \bar\alpha \sim Normal(0, 1.5)\\
-\sigma_{\alpha} \sim Expoential(1)\\
+\sigma_{\alpha} \sim Exponential(1)\\
 
 
 $$
 
 
-## **13E3. Rewrite the following model as a multi-level model.**\
+### **13E3. Rewrite the following model as a multi-level model.**\
 $$
 y_i \sim Normal(\mu_i, \sigma)\\
 \mu_i = \alpha_{GROUP[i]} +\beta x_i\\
@@ -46,7 +47,7 @@ y_i \sim Normal(\mu_i, \sigma)\\
 \sigma \sim Exponential(1)\\
 $$
 
-Rewritten: (Q: didn't give example of how to write a MLM with normal distribution, does the OG sigma stay?)\
+Rewritten:\
 $$
 y_i \sim Normal(\mu_i, \sigma)\\
 \mu_i = \alpha_{GROUP[i]} +\beta x_i\\
@@ -56,7 +57,7 @@ y_i \sim Normal(\mu_i, \sigma)\\
 \sigma_{\alpha} \sim Exponential(1)\\
 \sigma \sim Exponential(1)
 $$
-## **13E4. Write a mathematical model formula for a Poisson regression with varying intercepts.** Q: I just used a model from the book and left B alone at first, then in part 2 I added beta, but either way I ignored the logP_i. are these okay?\
+### **13E4. Write a mathematical model formula for a Poisson regression with varying intercepts.**\
 
 $$
 \tau_i \sim Poisson(\lambda_i)\\
@@ -68,10 +69,10 @@ log\lambda_i = \alpha_i + \beta x_i\\
 $$
 
 
-## **13E5. Write a mathematical model formula for a Poisson regression with two different kinds of varying intercepts, a cross-classified model.**\
+### **13E5. Write a mathematical model formula for a Poisson regression with two different kinds of varying intercepts, a cross-classified model.**\
 $$
 \tau_i \sim Poisson(\lambda_i)\\
-log\lambda_i = \alpha_i + \gamma_i+ \beta_i\\
+log\lambda_i = \alpha_{j[i]} + \gamma_{j[i]}+ \beta_{j[i]}\\
 \beta_j \sim Normal(0,0.5) \\
 \alpha_j \sim Normal(\bar\alpha, \sigma_{\alpha})\\
 \gamma_j \sim Normal(0, \sigma_{\gamma})\\
@@ -81,7 +82,7 @@ log\lambda_i = \alpha_i + \gamma_i+ \beta_i\\
 $$
 
 
-## **13M1. Revisit the Reed frog survival data, `data(reedfrogs)`, and add the `predation` and `size` treatment variables to the varying intercepts model. Consider models with either main effect alone, both main effects, as well as a model including both and their interaction. Instead of focusing on inferences about these two predictor variables, focus on the inferred variation across tanks. Explain why it changes as it does across models.**\
+### **13M1. Revisit the Reed frog survival data, `data(reedfrogs)`, and add the `predation` and `size` treatment variables to the varying intercepts model. Consider models with either main effect alone, both main effects, as well as a model including both and their interaction. Instead of focusing on inferences about these two predictor variables, focus on the inferred variation across tanks. Explain why it changes as it does across models.**\
 
 First, lets load in the data and create the models. \
 
@@ -100,52 +101,50 @@ d <- d %>%
   select(S, N, tank, big, pred)
 
 # make model with one main effect alone
-
-#m13.1a<- ulam( alist(
-#S ~ dbinom(N, p),
-#logit(p) <- a[tank] + b * big,
-#b ~ dnorm(0, 0.5), 
-#a[tank] ~ dnorm(a_bar, sigma), 
-#a_bar ~ dnorm(0, 1.5),
-#sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
+set.seed(99)
+m13.1a<- ulam( alist(
+S ~ dbinom(N, p),
+logit(p) <- a[tank] + b * big,
+b ~ dnorm(0, 0.5), 
+a[tank] ~ dnorm(a_bar, sigma), 
+a_bar ~ dnorm(0, 1.5),
+sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
 
 # make model with both main effect alone
-#m13.1b <- ulam( alist(
-#S ~ dbinom(N,p),
-#logit(p) <- a[tank] + b * big + x * pred,
-#b[big] ~ dnorm(0, 0.5), 
-#x[pred] ~ dnorm(0, 0.5), 
-#a[tank] ~ dnorm(a_bar, sigma), 
-#a_bar ~ dnorm(0, 1.5),
-#sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
+set.seed(100)
+m13.1b <- ulam( alist(
+S ~ dbinom(N,p),
+logit(p) <- a[tank] + b * big + x * pred,
+b ~ dnorm(0, 0.5), 
+x ~ dnorm(0, 0.5), 
+a[tank] ~ dnorm(a_bar, sigma), 
+a_bar ~ dnorm(0, 1.5),
+sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
 
 # make the model with interactions
+set.seed(90)
+m13.1c  <- ulam( alist(
+S ~ dbinom(N,p),
+logit(p) <- a[tank] + b * big + x * pred + z * big * pred,
+b ~ dnorm(0, 0.5), 
+x ~ dnorm(0,0.5),
+z ~ dnorm(0,0.5),
+a[tank] ~ dnorm(a_bar, sigma), 
+a_bar ~ dnorm(0, 1.5),
+sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
 
-#m13.1c  <- ulam( alist(
-#S ~ dbinom(N,p),
-#logit(p) <- a[tank] + b * big + x * pred + z * big*pred,
-#b ~ dnorm(0, 0.5), 
-#x ~ dnorm(0,0.5),
-#z ~ dnorm(0,0.5),
-#a[tank] ~ dnorm(a_bar, sigma), 
-#a_bar ~ dnorm(0, 1.5),
-#sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
-
-# coeftab(m13.1c, m13.1b, m13.1a, rotate = TRUE)
+#coeftab(m13.1c, m13.1b, m13.1a, rotate = TRUE)
 
 ```
+I notice that as more predictors are added to the model, the variation across tanks get's smaller (from 1.62 to 0.88 to 0.79). This is likely because the model is not able to predict as accurately leaving room for more variation with less parameters when we only take into account the main effects of our predictors. However, once the interaction is introduced into the model, we see the variation gets smaller (0.79). This makes me think that including the interaction allows for an explanation of some of the variation in survival across tanks. 
 
-
-## **13M2. Compare the models you fit just above, using WAIC. Can you reconcile the differences in WAIC with the posterior distributions of the models?**\
+### **13M2. Compare the models you fit just above, using WAIC. Can you reconcile the differences in WAIC with the posterior distributions of the models?**\
 ```{r}
-#compare(m13.1a, m13.1b, m13.1c)
+compare(m13.1a, m13.1b, m13.1c)
 ```
-I am surprised that the models all have such similar WAIC values when the variation between them seems so drastic. Before, the sigma value for a was almost double that of b or c. I'm wondering why doesn't this translate to the WAIC values. 
+I am surprised that the models all have such similar WAIC values when the variation between them seems so drastic. This is likely because the there is so much variation across tank that cannot be explained by our chosen predictors. However, the WAIC for m13.1c is likely lower because it is able to account for the interaction between "big" and "pred", while the other two models only account for the main effects. The fact that the model with the interaction has a lower WAIC makes me believe that the interaction is important in explaining the data and should be included in the model.\
 
-[WAITING FOR FEEDBACK]
-
-
-## **13M3. Re-estimate the basic Reed frog varying intercept model, but now using a Cauchy distribution in place of the Gaussian distribution for the varying intercepts. That is, fit this model:**\
+### **13M3. Re-estimate the basic Reed frog varying intercept model, but now using a Cauchy distribution in place of the Gaussian distribution for the varying intercepts. That is, fit this model:**\
 $$
 s_i \sim Binomial(n_i, p_i)\\
 logit(p_i) = \alpha_{TANK[i]}\\
@@ -159,42 +158,55 @@ Let's put this into code:\
 
 # with gaussian prior
 #set.seed(013122)
-#m13.1g  <- ulam(
-#alist(
-#S ~ dbinom(N,p),
-#logit(p) <- a[tank],
-#a[tank] ~ dnorm(a_bar, sigma), 
-#a_bar ~ dnorm(0, 1.5),
-#sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
+m13.1g  <- ulam(
+alist(
+S ~ dbinom(N,p),
+logit(p) <- a[tank],
+a[tank] ~ dnorm(a_bar, sigma), 
+a_bar ~ dnorm(0, 1.5),
+sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
 
 # with cauchy prior
 
-#m13.1 <- ulam( alist(
-#S ~ dbinom(N, p),
-#logit(p) <- a[tank],
-#a[tank] ~ dcauchy(a_bar, sigma), 
-#a_bar ~ dnorm(0, 1),
-#sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
+m13.1 <- ulam( alist(
+S ~ dbinom(N, p),
+logit(p) <- a[tank],
+a[tank] ~ dcauchy(a_bar, sigma), 
+a_bar ~ dnorm(0, 1),
+sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
 
 # question on divergent transitions
-#divergent(m13.1)
+divergent(m13.1)
 
 # questions on comparing means
 # coeftab(m13.1, m13.1g)
+
+# We can now compare the posterior means
+m_gauss <- apply(extract.samples(m13.1g)$a, 2, mean)
+m_cauchy <- apply(extract.samples(m13.1)$a, 2, mean)
+
+# plot
+plot(m_gauss, m_cauchy,
+  pch = 16, col = "purple",
+  xlab = "Gaussian intercept", ylab = "Cauchy intercept"
+)
+abline(a = 0, b = 1, lty = 2)
 
 
 ```
 
 
-## **(You are likely to see many divergent transitions for this model. Can you figure out why? Can you fix them?) Compare the posterior means of the intercepts, $\alpha_{TANK}$, to the posterior means produced in the chapter, using the customary Gaussian prior. Can you explain the pattern of differences? Take note of any change in the mean $\alpha$ as well.**\
+### **(You are likely to see many divergent transitions for this model. Can you figure out why? Can you fix them?) Compare the posterior means of the intercepts, $\alpha_{TANK}$, to the posterior means produced in the chapter, using the customary Gaussian prior. Can you explain the pattern of differences? Take note of any change in the mean $\alpha$ as well.**\
 
 
 I actually see 0 divergent transitions within my model. However, if there were some I would say this is due to steepness in some region of the parameter space making it harder to make predictions well. We can reparameterize or change the `alpha_delta` to try to deal with this issue. \
 
-### **Now, lets compare the means of the intercepts for the Cauchy and the Gaussian prior.**\ The Cauchy prior allows for larger intercepts to exist, i think this is interesting when looking at how similar their bar alphas are (1.41  - Cauchy vs. 1.34 - Gaussian). Specifically because the variation of the population seems to be small for both, even with the larger numbers I see in the Cauchy distribution's intercepts. I also notice that these higher numbers fo rthe Cauchy graph correspond to pretty high numbers for the Gaussian distribution (all around 3, except for a[33]) \
+#### **Now, lets compare the means of the intercepts for the Cauchy and the Gaussian prior.**\ 
+
+The Cauchy prior allows for larger intercepts to exist, I think this is interesting when looking at how similar their bar alphas are (1.41  - Cauchy vs. 1.34 - Gaussian).  I also notice that these higher numbers forthe Cauchy graph correspond to pretty high numbers for the Gaussian distribution (all around 3, except for a[33]); however, the Gaussian distribution is more concentrated. and causes more shrinkage.\
 
 
-## **13M4. Now use a Student-t distribution with ν = 2 for the intercepts:**\
+### **13M4. Now use a Student-t distribution with ν = 2 for the intercepts:**\
 $\alpha_{TANK} ∼ Student(2, \alpha,\sigma)$ \
 **Refer back to the Student-t example in Chapter 7 (page 234), if necessary. Compare the resulting posterior to both the original model and the Cauchy model in 13M3. Can you explain the differences and similarities in shrinkage in terms of the properties of these distributions?**\
 ```{r}
@@ -210,19 +222,33 @@ a_bar ~ dnorm(0, 1.5),
 sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
 
 # comparison
-# coeftab(m13.1, m13.1g, m13.1s)
+m_student <- apply(extract.samples(m13.1s)$a, 2, mean)
+
+# plot for G vs S
+plot(m_gauss, m_student,
+  pch = 16, col = "purple",
+  xlab = "Gaussian intercept", ylab = "student-t intercept"
+)
+abline(a = 0, b = 1, lty = 2)
+
+# plot for C vs. S
+plot(m_student, m_cauchy,
+  pch = 16, col = "purple",
+  xlab = "student-t intercept", ylab = "Cauchy intercept"
+)
+abline(a = 0, b = 1, lty = 2)
 ```
 
-[WAITING FOR FEEDBACK]\
+I can see that the student-t model has the same posterior means for most of the the intercepts. Gaussian model causes more shrinkage than the student t model as we can see from the first graph. However, the student-t model causes more shrinkage than the Cauchy model as we can see from the second graph. 
 
 
-## **13M5. Modify the cross-classified chimpanzees model m13.4 so that the adaptive prior for blocks contains a parameter $\bar\gamma$ for its mean:**\
+### **13M5. Modify the cross-classified chimpanzees model m13.4 so that the adaptive prior for blocks contains a parameter $\bar\gamma$ for its mean:**\
 $$
 \gamma \sim Normal(\bar\gamma,\sigma_{\gamma})\\
 \bar\gamma \sim Normal(0, 1.5)
 $$
 
-## **Compare this model to m13.4. What has including $\bar\gamma$ done?**\
+### **Compare this model to m13.4. What has including $\bar\gamma$ done?**\
 
 
 ```{r}
@@ -236,7 +262,7 @@ dat_list  <- data %>%
   mutate(treatment = 1 + prosoc_left + 2 * condition) %>% 
   mutate(block_id = block) %>% 
   mutate(treatment = as.integer(treatment)) %>% 
-  select(pulled_left, actor, block_id, treatment)
+  dplyr::select(pulled_left, actor, block_id, treatment)
 
 # model without gamma-bar
 set.seed(13)
@@ -271,10 +297,11 @@ compare(m13.4a, m13.4b)
 precis(m13.4b, 2, pars = c("a", "b","g", "sigma_g", "g_bar"))
 precis(m13.4a, 2, pars = c("a", "b", "g", "sigma_g"))
 ```
+Adding g-bar in the cross-classified chimpanzees model (m13.4b) has not made a substantial difference compared to the previous model (m13.4a). The comparison between m13.4a and m13.4b suggests that m13.4a and m13.4b are both nearly equally good at explaining the data. The WAIC value of m13.4b (532.8) is slightly higher than the WAIC value of m13.4a (532.2), but the difference is not significant.\
 
-The coefficients for the model with the g-bar have higher values than the model without the g-bar.  This makes sense because these coefficients were not allowed to center around anything but 0. Also, the n_eff values for the model with g-bar are much lower than the n_eff values for the model without the g-bar. This means that the model with the g-bar is more flexible (I believe?)\
+Looking at the posterior distributions of the parameters for both, the g-bar seems to not be very informative. The mean values for g-bar is close to 0 because this was the prior mean we set. The standard deviation for g-bar is pretty large... which likely means that there is not enough data to help inform a more specific value of g-bar. The posterior standard deviations of the treatment effects and actor effects are also basically the same. The posterior distribution of the block effects and their standard deviations are also basically unchanged.\
 
-## **13M6. Sometimes the prior and the data(through the likelihood) are in conflict, because they concentrate around different regions of parameter space. What happens in these cases depends a lot upon the shape of the tails of the distributions. Likewise, the tails of distributions strongly influence can outliers are shrunk or not towards the mean. I want you to consider four different models to fit to one observation at y = 0. The models differ only in the distributions assigned to the likelihood and prior. Here are the four models:**\
+### **13M6. Sometimes the prior and the data(through the likelihood) are in conflict, because they concentrate around different regions of parameter space. What happens in these cases depends a lot upon the shape of the tails of the distributions. Likewise, the tails of distributions strongly influence can outliers are shrunk or not towards the mean. I want you to consider four different models to fit to one observation at y = 0. The models differ only in the distributions assigned to the likelihood and prior. Here are the four models:**\
 
 Model NN:\
 $$
@@ -344,7 +371,7 @@ m_TT <- ulam(
   data = data2, chains = 2)
 ```
 
-## **Estimate the posterior distributions for these models and compare them. Can you explain the results, using the properties of the distributions?**\
+### **Estimate the posterior distributions for these models and compare them. Can you explain the results, using the properties of the distributions?**\
 
 ```{r}
 # estimate for NN
@@ -366,12 +393,13 @@ dens(samples_TT$mu, col="darkolivegreen4", add=TRUE)
 legend("right", legend = c("samples_NN", "samples_TN", "samples_NT", "samples_TT" ), col = c("darkorange3", "lightskyblue", "mediumpurple1", "darkolivegreen4" ), pch = 1)
 
 ```
+
 I notice that when the prior and the likelihood are the same distribution, the posterior distribution is more symmetric (see the green and orange lines). Also, the tails of Student-t distribution seems heavier than the Normal distribution, which indicates that it influences the shrinkage (because of the outliers).\
 
 
 # chapter 14\
 
-## **14E1. Add to the following model varying slopes on the predictor x.**\
+### **14E1. Add to the following model varying slopes on the predictor x.**\
 
 $$
 y_i \sim Normal(\mu_i, \sigma)\\
@@ -383,13 +411,135 @@ y_i \sim Normal(\mu_i, \sigma)\\
 \sigma_{\alpha} \sim Exponential(1)\\
 $$
 
-## **14E2. Think up a context in which varying intercepts will be positively correlated with varying slopes. Provide a mechanistic explanation for the correlation.**\
+Rewritten: \
 
-## **14E3. When is it possible for a varying slopes model to have fewer effective parameters (as estimated by WAIC or PSIS) than the corresponding model with fixed (unpooled) slopes? Explain.**\
+$$
+y_i \sim Normal(\mu_i, \sigma)\\
+\mu_i = \alpha_{GROUP[i]} + {\beta_{GROUP[i]}}x_i\\
+{
+\begin{bmatrix}
+\alpha_{GROUP} \\
+\beta_{GROUP}
+\end{bmatrix}
+}
+\sim MVNormal\left(\begin{bmatrix}
+\alpha \\
+\beta
+\end{bmatrix}
+, S \right)\\
+S =  
+\begin{pmatrix}
+      \sigma_{\alpha} & 0 \\
+     0 & \sigma_{\beta}
+\end{pmatrix}
 
-## **14M1. Repeat the café robot simulation from the beginning of the chapter. This time, set $\rho$ to zero, so that there is no correlation between intercepts and slopes. How does the posterior distribution of the correlation reflect this change in the underlying simulation?**\
+\begin{pmatrix}
+      \sigma_{\alpha} & 0 \\
+      0 & \sigma_{\beta}
+      \end{pmatrix}\\
+\alpha \sim Normal(0, 10)\\
+\beta \sim  Normal(0, 1)\\
+\sigma \sim HalfCauchy(0, 2)\\
+\sigma_{\alpha} \sim Exponential(1)\\
+\sigma_{\beta} \sim Exponential(1)\\
+R \sim LKJcorr(2)
+$$
 
-## **14M2. Fit this multilevel model to the simulated café data:**
+### **14E2. Think up a context in which varying intercepts will be positively correlated with varying slopes. Provide a mechanistic explanation for the correlation.**\
+
+An example of when varying intercepts will be positively correlated with vary slopes is a study of the relationship between height (X) and weight(Y) in a population, where the intercept and slope of the regression line vary across subgroups defined by age.\
+
+One possible explanation for this correlation is that as individuals grow older, they might gain more weight and also have a steeper relationship between height and weight. For example, as people age, they generally gain more weight, but their height does not change much. Hence, the slope of the regression line between height and weight for older individuals will be steeper than for younger individuals. As a result, the positive correlation between intercept and slope across subgroups is due to the common underlying factor of age.\
+
+$rho_{height, weight} = corr(height, weight) = \frac{cov(height, weight)}{\sigma_{height}\sigma_{weight}}.$
+
+### **14E3. When is it possible for a varying slopes model to have fewer effective parameters (as estimated by WAIC or PSIS) than the corresponding model with fixed (unpooled) slopes? Explain.**\
+
+It is possible for a varying slopes model to have fewer effective parameters than the corresponding model with fixed (unpooled) slopes when the data suggest that the slopes are similar across groups (less variation, more shrinkage). Because of this, pooling the slopes into a single slope parameter will lead to a better fit to the data compared to having separate slopes for each group.\
+
+A model with a single slope parameter is able capture the overall trend in the data and account for any variation in the slopes. On the other hand, a model with separate slopes for each group can lead to overfitting. Overfitting can result in a larger number of estimated parameters and, thus, higher effective parameters as estimated by WAIC or PSIS.\
+
+### **14M1. Repeat the café robot simulation from the beginning of the chapter. This time, set $\rho$ to zero, so that there is no correlation between intercepts and slopes. How does the posterior distribution of the correlation reflect this change in the underlying simulation?**\
+
+```{r}
+
+# define properties
+
+a <- 3.5 
+b <- (-1) 
+sigma_a <- 1
+sigma_b <- 0.5
+rho <- (-0.7)
+# for question we need a new rho
+rho1 <- 0
+
+# set means
+Mu <-c(a,b)
+
+# build matrix
+
+cov_ab <-sigma_a*sigma_b*rho
+Sigma <-matrix(c(sigma_a^2,cov_ab,cov_ab,sigma_b^2),ncol=2)
+
+# simulate cafes
+N_cafes <- 20
+
+    # simulate their properties
+library(MASS) 
+set.seed(5) 
+vary_effects <-mvrnorm(N_cafes,Mu,Sigma)
+
+a_cafe  <-vary_effects[,1]
+b_cafe <-vary_effects[,2]
+
+# simulate observations
+set.seed(22)
+N_visits <-10
+afternoon <-rep(0:1, N_visits * N_cafes / 2)
+cafe_id <-rep(1:N_cafes, each = N_visits)
+mu <-a_cafe[cafe_id] + b_cafe[cafe_id] * afternoon
+sigma <-0.5
+wait <-rnorm(N_visits*N_cafes,mu,sigma)
+data3 <- tibble(cafe=cafe_id,afternoon=afternoon,wait=wait)
+
+# add model from chapter
+R <-rlkjcorr(1e4,K=2,eta=2)
+
+set.seed(867531)
+
+m14.1_r <- ulam(
+alist(
+wait ~ normal(mu,sigma),
+mu <- a_cafe[cafe] + b_cafe[cafe] * afternoon,
+c(a_cafe,b_cafe)[cafe] ~ multi_normal(c(a,b), rho,sigma_cafe),
+a ~ normal(5,2),
+b ~ normal(-1,0.5),
+sigma_cafe ~ exponential(1),
+sigma ~ exponential(1),
+rho ~ lkj_corr(2)
+) , data = data3, chains = 4, cores = 4, log_lik = TRUE)
+
+
+# add model for question
+
+m14.1_r0 <- ulam(
+alist(
+wait ~ normal(mu,sigma),
+mu <- a_cafe[cafe] + b_cafe[cafe] * afternoon,
+c(a_cafe,b_cafe)[cafe] ~ multi_normal(c(a,b), rho1,sigma_cafe),
+a ~ normal(5,2),
+b ~ normal(-1,0.5),
+sigma_cafe ~ exponential(1),
+sigma ~ exponential(1),
+rho1 ~ lkj_corr(2)
+) , data = data3, chains = 4, cores = 4, log_lik = TRUE)
+
+compare(m14.1_r, m14.1_r0)
+
+```
+
+### **14M2. Fit this multilevel model to the simulated café data:**\
+
 $$
 W_i \sim Normal(\mu_i, \sigma)\\
 \mu_i = \alpha_{CAFÉ[i]} + \beta_{CAFÉ[i]}Ai\\
@@ -401,40 +551,11 @@ W_i \sim Normal(\mu_i, \sigma)\\
 $$
 
 ```{r}
+# using same set up from above
 
-# need to reorganize all of this code
-set.seed(22) 
-N_visits <-10
-N_cafes <- 20
-a <- 3.5 
-b <- (-1) 
-sigma_a <- 1
-sigma_b <- 0.5
-rho <- (-0.7)
-Mu <-c(a,b)
-
-cov_ab <-sigma_a*sigma_b*rho
-Sigma <-matrix(c(sigma_a^2,cov_ab,cov_ab,sigma_b^2),ncol=2)
-
-library(MASS) 
-set.seed(5) 
-vary_effects <-mvrnorm(N_cafes,Mu,Sigma)
-
-a_cafe  <-vary_effects[,1]
-b_cafe <-vary_effects[,2]
-
-# set up the data for tibble
-afternoon <-rep(0:1, N_visits * N_cafes / 2)
-cafe_id <-rep(1:N_cafes, each = N_visits)
-mu <-a_cafe[cafe_id] + b_cafe[cafe_id] * afternoon
-sigma <-0.5
-wait <-rnorm(N_visits*N_cafes,mu,sigma)
-data3 <- tibble(cafe=cafe_id,afternoon=afternoon,wait=wait)
-
-
-# create model
+# create model for questions
 set.seed(867530)
-m14.1 <-ulam(
+m14.1q <-ulam(
 alist(
 wait ~ normal(mu,sigma),
 mu <- a_cafe[cafe] + b_cafe[cafe] * afternoon,
@@ -445,7 +566,34 @@ b_bar ~ normal(0,10),
 sigma_a ~ dexp(1),
 sigma_b ~ dexp(1),
 sigma ~ dexp(1)
-) ,data = data3, chains = 4, cores = 4)
+) ,data = data3, chains = 4, cores = 4, log_lik = TRUE)
+
+# add model from chapter
+R <-rlkjcorr(1e4,K=2,eta=2)
+
+set.seed(867531)
+
+m14.1c <- ulam(
+alist(
+wait ~ normal(mu,sigma),
+mu <- a_cafe[cafe] + b_cafe[cafe] * afternoon,
+c(a_cafe,b_cafe)[cafe] ~ multi_normal(c(a,b), Rho,sigma_cafe),
+a ~ normal(5,2),
+b ~ normal(-1,0.5),
+sigma_cafe ~ exponential(1),
+sigma ~ exponential(1),
+Rho ~ lkj_corr(2)
+) , data = data3, chains = 4, cores = 4, log_lik = TRUE)
+
+compare(m14.1q, m14.1c)
 ```
 
-## **Use WAIC to compare this model to the model from the chapter, the one that uses a multi-variate Gaussian prior. Explain the result.**
+The comparison of the two models shows that the WAIC value is slightly higher for the model with rho1 (the correlation set to zero) than for the model with rho.\
+
+This means that the model with the non-zero correlation is a better fit to the data. When the correlation between intercepts and slopes is set to zero, the model has to work more to explain the variation in the data (which gives us the higher WAIC value).\
+
+### **Use WAIC to compare this model to the model from the chapter, the one that uses a multi-variate Gaussian prior. Explain the result.**\
+
+The result of the comparison between m14.1c and m14.1q shows that m14.1c has a lower WAIC value (304.8) than m14.1q (307.1). This means that m14.1c is a better fit for the data than m14.1q.\
+
+m14.1c uses a multivariate Gaussian prior for the parameters a_cafe and b_cafe, which allows for the possibility of correlation between the two parameters. This model allows for more flexibility in fitting the data, and as a result, has a lower WAIC value. On the other hand, m14.1q uses separate priors for a_cafe and b_cafe, and does not allow for any correlation between the two parameters. This lack of flexibility results in a higher WAIC value.\
