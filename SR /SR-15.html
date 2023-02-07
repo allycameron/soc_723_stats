@@ -508,6 +508,7 @@ sigma ~ dexp(1)
 ## Chain 1 Iteration: 400 / 1000 [ 40%]  (Warmup) 
 ## Chain 1 Iteration: 500 / 1000 [ 50%]  (Warmup) 
 ## Chain 1 Iteration: 501 / 1000 [ 50%]  (Sampling) 
+## Chain 1 Iteration: 600 / 1000 [ 60%]  (Sampling) 
 ## Chain 2 Iteration:   1 / 1000 [  0%]  (Warmup) 
 ## Chain 2 Iteration: 100 / 1000 [ 10%]  (Warmup) 
 ## Chain 2 Iteration: 200 / 1000 [ 20%]  (Warmup) 
@@ -526,7 +527,6 @@ sigma ~ dexp(1)
 ## Chain 4 Iteration: 200 / 1000 [ 20%]  (Warmup) 
 ## Chain 4 Iteration: 300 / 1000 [ 30%]  (Warmup) 
 ## Chain 4 Iteration: 400 / 1000 [ 40%]  (Warmup) 
-## Chain 1 Iteration: 600 / 1000 [ 60%]  (Sampling) 
 ## Chain 1 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 1 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 1 Iteration: 900 / 1000 [ 90%]  (Sampling) 
@@ -709,11 +709,11 @@ R_C &lt;-rbern(N_houses,r)
 cat_obs &lt;-cat
 cat_obs[R_C==1] &lt;- (-9L)
 
-dat &lt;-list(
-notes =notes,
-cat =cat_obs,
-RC =R_C,
-N =as.integer(N_houses))
+dat &lt;- list(
+notes = notes,
+cat = cat_obs,
+RC = R_C,
+N = as.integer(N_houses))
 
 # model
 m15.9 &lt;- ulam(
@@ -735,17 +735,17 @@ gq &gt; vector[N]:PrC1 &lt;- exp(lpC1) / (exp(lpC1) + exp(lpC0)),
 gq &gt; vector[N]:lpC1 &lt;- log(k) + poisson_lpmf(notes[i] | exp(a + b)),
 gq &gt; vector[N]:lpC0 &lt;- log(1 - k) + poisson_lpmf(notes[i]|exp(a))
 ), data = dat, chains = 4, cores = 4)</code></pre>
-<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/RtmpEukUDR/model-524c6591b5c9.stan&#39;, line 3, column 4: Declaration
+<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/RtmprID6oQ/model-5cbb566c45c8.stan&#39;, line 3, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/RtmpEukUDR/model-524c6591b5c9.stan&#39;, line 4, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/RtmprID6oQ/model-5cbb566c45c8.stan&#39;, line 4, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/RtmpEukUDR/model-524c6591b5c9.stan&#39;, line 5, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/RtmprID6oQ/model-5cbb566c45c8.stan&#39;, line 5, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
@@ -772,21 +772,21 @@ gq &gt; vector[N]:lpC0 &lt;- log(1 - k) + poisson_lpmf(notes[i]|exp(a))
 ## Chain 2 Iteration: 400 / 1000 [ 40%]  (Warmup) 
 ## Chain 3 Iteration: 400 / 1000 [ 40%]  (Warmup) 
 ## Chain 4 Iteration: 400 / 1000 [ 40%]  (Warmup) 
-## Chain 3 Iteration: 500 / 1000 [ 50%]  (Warmup) 
-## Chain 3 Iteration: 501 / 1000 [ 50%]  (Sampling) 
 ## Chain 1 Iteration: 500 / 1000 [ 50%]  (Warmup) 
 ## Chain 1 Iteration: 501 / 1000 [ 50%]  (Sampling) 
+## Chain 3 Iteration: 500 / 1000 [ 50%]  (Warmup) 
+## Chain 3 Iteration: 501 / 1000 [ 50%]  (Sampling) 
 ## Chain 2 Iteration: 500 / 1000 [ 50%]  (Warmup) 
 ## Chain 2 Iteration: 501 / 1000 [ 50%]  (Sampling) 
 ## Chain 4 Iteration: 500 / 1000 [ 50%]  (Warmup) 
 ## Chain 4 Iteration: 501 / 1000 [ 50%]  (Sampling) 
 ## Chain 1 Iteration: 600 / 1000 [ 60%]  (Sampling) 
-## Chain 2 Iteration: 600 / 1000 [ 60%]  (Sampling) 
 ## Chain 3 Iteration: 600 / 1000 [ 60%]  (Sampling) 
+## Chain 2 Iteration: 600 / 1000 [ 60%]  (Sampling) 
 ## Chain 4 Iteration: 600 / 1000 [ 60%]  (Sampling) 
-## Chain 3 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 1 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 2 Iteration: 700 / 1000 [ 70%]  (Sampling) 
+## Chain 3 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 4 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 3 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 1 Iteration: 800 / 1000 [ 80%]  (Sampling) 
@@ -812,10 +812,18 @@ gq &gt; vector[N]:lpC0 &lt;- log(1 - k) + poisson_lpmf(notes[i]|exp(a))
 
 # using correlation to evaluate inference
 post_samples &lt;- extract.samples(m15.9)
-#mean_cat_presence_estimates &lt;- rowMeans(df[, grep(&quot;Estimate&quot;, names(df))])
-#true_values &lt;- as.numeric(dat$cat)
-#cor_result &lt;- cor(cat_presence_estimates, true_values)
-# print(cor_result)</code></pre>
+cat_presence_estimates &lt;- post_samples$PrC1
+true_values &lt;- as.numeric(dat$cat)
+cor_result &lt;- cor(cat_presence_estimates, true_values)
+#print(cor_result)
+summary(cor_result)</code></pre>
+<pre><code>##        V1           
+##  Min.   :-0.006046  
+##  1st Qu.: 0.017919  
+##  Median : 0.042301  
+##  Mean   : 0.032273  
+##  3rd Qu.: 0.047475  
+##  Max.   : 0.048855</code></pre>
 <p>Skimming the results, we see that the values are not close to one and
 thus, the model is actually not doing a great job at inferring the
 missing data. One way to change the simulation to increase the precision

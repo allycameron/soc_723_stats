@@ -156,11 +156,11 @@ R_C <-rbern(N_houses,r)
 cat_obs <-cat
 cat_obs[R_C==1] <- (-9L)
 
-dat <-list(
-notes =notes,
-cat =cat_obs,
-RC =R_C,
-N =as.integer(N_houses))
+dat <- list(
+notes = notes,
+cat = cat_obs,
+RC = R_C,
+N = as.integer(N_houses))
 
 # model
 m15.9 <- ulam(
@@ -188,10 +188,12 @@ gq > vector[N]:lpC0 <- log(1 - k) + poisson_lpmf(notes[i]|exp(a))
 
 # using correlation to evaluate inference
 post_samples <- extract.samples(m15.9)
-#mean_cat_presence_estimates <- rowMeans(df[, grep("Estimate", names(df))])
-#true_values <- as.numeric(dat$cat)
-#cor_result <- cor(cat_presence_estimates, true_values)
-# print(cor_result)
+cat_presence_estimates <- post_samples$PrC1
+# mean_cat_presence_estimates <- rowMeans(post_samples$PrC1)
+true_values <- as.numeric(dat$cat)
+cor_result <- cor(cat_presence_estimates, true_values)
+#print(cor_result)
+summary(cor_result)
 ```
 Skimming the results, we see that the values are not close to one and thus, the model is actually not doing a great job at inferring the missing data. One way to change the simulation to increase the precision of the inference is to increase the sample size, making the estimation of the parameters more precise. Another way is to collect more and/or better information to improve the model. For example, if we knew the number of notes produced by each bird, that could be used to further improve the inference.
 
