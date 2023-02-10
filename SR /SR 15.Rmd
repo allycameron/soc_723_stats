@@ -28,8 +28,6 @@ $$
 
 ### **15E2. Rewrite the same model so that it allows imputation of missing values for log population.  There aren’t any missing values in the variable, but you can still write down a model formula that would imply imputation, if any values were missing.**\
 
-Q: in the model do i work with just P_i or log P_i?
-
 $$
 T_i \sim Poisson(\mu_i) \\
 log \ \mu_i = \alpha + \beta \ logP_i \\
@@ -40,48 +38,52 @@ log\ P_i \sim Normal(\nu,\sigma_P)\\
 \sigma_P \sim Exponential(1)
 $$
 
-### **15M1. Using the mathematical form of the imputation model in the chapter, explain what is being assumed about how the missing values were generated. ** 
+### **15M1. Using the mathematical form of the imputation model in the chapter, explain what is being assumed about how the missing values were generated.**\
 
 In the chapter, the missing values are assumed to not contain any information abou the individual cases. The missing values instead are randomly placed across the cases. The model assumes that there is no causation related to missingness. Instead, the model just states that missing data follows a certain distribution which we would use to test against the data we have presently. \
 
-### **15M2. Reconsider the primate milk missing data example from the chapter. This time, assign B a  distribution that is properly bounded between zero and 1. A beta distribution, for example, is a good choice.  **
+### **15M2. Reconsider the primate milk missing data example from the chapter. This time, assign B a distribution that is properly bounded between zero and 1. A beta distribution, for example, is a good choice.**\
 
-[need to work on getting this code to work]
 ```{r}
 library(rethinking)
 library(tidyverse)
 data(milk)
+
+# dataframe
 d <- tibble(milk)
 data3 <- d %>% 
   mutate(neocortex_prop = neocortex.perc/100,
          logmass = log(mass),
          K = standardize(kcal.per.g),
-         B = standardize(neocortex_prop),
+         B = neocortex_prop, # who would have known
          M = standardize(logmass)) %>% 
   select(K,B,M)
 
-
-#m15.5  <- ulam(
-#alist(
-#K ~ dnorm(mu,sigma),
-#mu <- a + bB * B + bM * M,
-#B ~ dbeta(alpha, beta), # change to beta distribution
-#alpha ~ dnorm (0,1),
-#beta ~ dnorm(0,1),
-#a ~ dnorm(0,0.5),
-#bB ~ dnorm(0,0.5),
-#bM ~ dnorm(0,0.5),
-#sigma ~ dexp(1)
-#) , data = data3, chains = 4, cores = 4)
+# model
+m15.5  <- ulam(
+alist(
+K ~ dnorm(mu,sigma),
+mu <- a + bB * B + bM * M,
+B ~ dbeta(nu, sigma_B), # change to beta distribution
+nu ~ dexp(1),
+sigma_B ~ dexp(1),
+vector[12]:B_impute ~ dbeta(1, 1), # who would have known
+a ~ dnorm(0,0.5),
+bB ~ dnorm(0,0.5),
+bM ~ dnorm(0,0.5),
+sigma ~ dexp(1)
+) , data = data3, chains = 4, cores = 4)
 
 ```
 
 
-### **15M3. Repeat the divorce data measurement error models, but this time double the standard errors.  Can you explain how doubling the standard errors impacts inference?**\
-```{r}
+### **15M3. Repeat the divorce data measurement error models, but this time double the standard errors. Can you explain how doubling the standard errors impacts inference?**\
 
+```{r}
+# data
 data(WaffleDivorce)
 x <-WaffleDivorce
+# create the data list
 dlist <-list(
 D_obs = standardize(x$Divorce),
 D_sd_2 = 2*(x$Divorce.SE/sd(x$Divorce)),
@@ -89,23 +91,26 @@ M = standardize(x$Marriage),
 A = standardize(x$MedianAgeMarriage),
 N = nrow(x))
 
+# model
 set.seed(7734)
 m15.1 <-ulam(
 alist(
 D_obs ~ dnorm(D_true, D_sd_2),
 vector[N]:D_true ~ dnorm(mu,sigma),
-mu <-a+bA*A+bM*M,
+mu <-a + bA * A + bM * M,
 a ~ dnorm(0,0.2),
 bA ~ dnorm(0,0.5),
 bM ~ dnorm(0,0.5),
 sigma ~ dexp(1)
-) ,data = dlist, chains = 4, cores = 4)
+) , data = dlist, chains = 4, cores = 4)
 
 precis(m15.1, 2)
 ```
+
 Doubling `D_sd` makes the error term in the model larger, indicating that the model has more uncertainty in its predictions. We can see evidence of this from the `n_eff` and `rhat4` values. The n_Eff values are mostly under 100 and the rhat values are over 1. This indicates that the chains have not convereged and the parameters are not well estimated and may not be reliable. This makes sense because we have less certainty about the model now that we doubled the error. In conclusions, doubling the standard errors makes the model less confident in its predictions, which could lead to less accurate inferences about the relationship between the variables.\
 
-### **15M4. Simulate data from this DAG: X → Y → Z. Now fit a model that predicts Y using both X  and Z. What kind of confound arises, in terms of inferring the causal influence of X on Y?  **
+### **15M4. Simulate data from this DAG: X → Y → Z. Now fit a model that predicts Y using both X  and Z. What kind of confound arises, in terms of inferring the causal influence of X on Y?**\
+
 
 ```{r}
 # simulate the variables
@@ -140,7 +145,7 @@ precis(m4)
 
 A confound arises when inferring the causal influence of X on Y because Z is a common cause of both X and Y. In other words, Z affects both the independent variable (X) and the dependent variable (Y). This makes  it difficult to determine the causal effect of X on Y solely from the data.\
 
-### **15M5. Return to the singing bird model, m15.9, and compare the posterior estimates of cat presence  (PrC1) to the true simulated values. How good is the model at inferring the missing data? Can you  think of a way to change the simulation so that the precision of the inference is stronger?  **
+### **15M5. Return to the singing bird model, m15.9, and compare the posterior estimates of cat presence  (PrC1) to the true simulated values. How good is the model at inferring the missing data? Can you  think of a way to change the simulation so that the precision of the inference is stronger?**\
 
 ```{r}
 # data
@@ -195,11 +200,11 @@ cor_result <- cor(cat_presence_estimates, true_values)
 #print(cor_result)
 summary(cor_result)
 ```
-Skimming the results, we see that the values are not close to one and thus, the model is actually not doing a great job at inferring the missing data. One way to change the simulation to increase the precision of the inference is to increase the sample size, making the estimation of the parameters more precise. Another way is to collect more and/or better information to improve the model. For example, if we knew the number of notes produced by each bird, that could be used to further improve the inference.
 
-### **15M6. Return to the four dog-eats-homework missing data examples. Simulate each and then fit  one or more models to try to recover valid estimates for S → H.  **
+Skimming the results, we see that the values are not close to one and thus, the model is actually not doing a great job at inferring the missing data. One way to change the simulation to increase the precision of the inference is to increase the sample size, making the estimation of the parameters more precise. Another way is to collect more and/or better information to improve the model. For example, if we knew the number of notes produced by each bird, that could be used to further improve the inference.\
 
-[need to work on second part of question later. ]
+### **15M6. Return to the four dog-eats-homework missing data examples. Simulate each and then fit one or more models to try to recover valid estimates for S → H.**\
+
 ```{r}
 # simulate our variables
 N <- 100
@@ -236,3 +241,17 @@ D4 <- ifelse(H4 < 5,1,0)
 Hm4 <- H4; Hm4[D4==1] <- NA
 ```
 
+Now, I will try to recover the valid estimates below. \
+
+```{r}
+# make the model
+H4_factor <- as.factor(H4)
+model <- glm(H4_factor ~ S4, family = binomial())
+
+# make predictions for H
+predictions <- predict(model, data.frame(S = S4), type = "response")
+
+# we are going to use the missing values
+H4[is.na(Hm4)] <- predictions[is.na(Hm4)]
+```
+This is my best try at fitting the first model for the last simulation.  I replaced the missing values in the original dataset with the imputed values from the predictions.

@@ -381,7 +381,6 @@ missing values for log population. There aren’t any missing values in
 the variable, but you can still write down a model formula that would
 imply imputation, if any values were missing.</strong><br />
 </h3>
-<p>Q: in the model do i work with just P_i or log P_i?</p>
 <p><span class="math display">\[
 T_i \sim Poisson(\mu_i) \\
 log \ \mu_i = \alpha + \beta \ logP_i \\
@@ -395,7 +394,8 @@ log\ P_i \sim Normal(\nu,\sigma_P)\\
 <div id="m1.-using-the-mathematical-form-of-the-imputation-model-in-the-chapter-explain-what-is-being-assumed-about-how-the-missing-values-were-generated." class="section level3">
 <h3><strong>15M1. Using the mathematical form of the imputation model in
 the chapter, explain what is being assumed about how the missing values
-were generated. </strong></h3>
+were generated.</strong><br />
+</h3>
 <p>In the chapter, the missing values are assumed to not contain any
 information abou the individual cases. The missing values instead are
 randomly placed across the cases. The model assumes that there is no
@@ -407,9 +407,9 @@ against the data we have presently.<br />
 <div id="m2.-reconsider-the-primate-milk-missing-data-example-from-the-chapter.-this-time-assign-b-a-distribution-that-is-properly-bounded-between-zero-and-1.-a-beta-distribution-for-example-is-a-good-choice." class="section level3">
 <h3><strong>15M2. Reconsider the primate milk missing data example from
 the chapter. This time, assign B a distribution that is properly bounded
-between zero and 1. A beta distribution, for example, is a good choice.
-</strong></h3>
-<p>[need to work on getting this code to work]</p>
+between zero and 1. A beta distribution, for example, is a good
+choice.</strong><br />
+</h3>
 <pre class="r"><code>library(rethinking)</code></pre>
 <pre><code>## Loading required package: rstan</code></pre>
 <pre><code>## Loading required package: StanHeaders</code></pre>
@@ -451,54 +451,41 @@ between zero and 1. A beta distribution, for example, is a good choice.
 ## ✖ dplyr::lag()     masks stats::lag()
 ## ✖ purrr::map()     masks rethinking::map()</code></pre>
 <pre class="r"><code>data(milk)
+
+# dataframe
 d &lt;- tibble(milk)
 data3 &lt;- d %&gt;% 
   mutate(neocortex_prop = neocortex.perc/100,
          logmass = log(mass),
          K = standardize(kcal.per.g),
-         B = standardize(neocortex_prop),
+         B = neocortex_prop, # who would have known
          M = standardize(logmass)) %&gt;% 
   select(K,B,M)
 
-
-#m15.5  &lt;- ulam(
-#alist(
-#K ~ dnorm(mu,sigma),
-#mu &lt;- a + bB * B + bM * M,
-#B ~ dbeta(alpha, beta), # change to beta distribution
-#alpha ~ dnorm (0,1),
-#beta ~ dnorm(0,1),
-#a ~ dnorm(0,0.5),
-#bB ~ dnorm(0,0.5),
-#bM ~ dnorm(0,0.5),
-#sigma ~ dexp(1)
-#) , data = data3, chains = 4, cores = 4)</code></pre>
-</div>
-<div id="m3.-repeat-the-divorce-data-measurement-error-models-but-this-time-double-the-standard-errors.-can-you-explain-how-doubling-the-standard-errors-impacts-inference" class="section level3">
-<h3><strong>15M3. Repeat the divorce data measurement error models, but
-this time double the standard errors. Can you explain how doubling the
-standard errors impacts inference?</strong><br />
-</h3>
-<pre class="r"><code>data(WaffleDivorce)
-x &lt;-WaffleDivorce
-dlist &lt;-list(
-D_obs = standardize(x$Divorce),
-D_sd_2 = 2*(x$Divorce.SE/sd(x$Divorce)),
-M = standardize(x$Marriage),
-A = standardize(x$MedianAgeMarriage),
-N = nrow(x))
-
-set.seed(7734)
-m15.1 &lt;-ulam(
+# model
+m15.5  &lt;- ulam(
 alist(
-D_obs ~ dnorm(D_true, D_sd_2),
-vector[N]:D_true ~ dnorm(mu,sigma),
-mu &lt;-a+bA*A+bM*M,
-a ~ dnorm(0,0.2),
-bA ~ dnorm(0,0.5),
+K ~ dnorm(mu,sigma),
+mu &lt;- a + bB * B + bM * M,
+B ~ dbeta(nu, sigma_B), # change to beta distribution
+nu ~ dexp(1),
+sigma_B ~ dexp(1),
+vector[12]:B_impute ~ dbeta(1, 1), # who would have known
+a ~ dnorm(0,0.5),
+bB ~ dnorm(0,0.5),
 bM ~ dnorm(0,0.5),
 sigma ~ dexp(1)
-) ,data = dlist, chains = 4, cores = 4)</code></pre>
+) , data = data3, chains = 4, cores = 4)</code></pre>
+<pre><code>## Found 12 NA values in B and attempting imputation.
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpz0t3wx/model-ab22bdeeb9c.stan&#39;, line 4, column 26: Declaration
+##     of arrays by placing brackets after a type is deprecated and will be
+##     removed in Stan 2.32.0. Instead use the array keyword before the type.
+##     This can be changed automatically using the auto-format flag to stanc
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpz0t3wx/model-ab22bdeeb9c.stan&#39;, line 18, column 4: Declaration
+##     of arrays by placing brackets after a variable name is deprecated and
+##     will be removed in Stan 2.32.0. Instead use the array keyword before the
+##     type. This can be changed automatically using the auto-format flag to
+##     stanc</code></pre>
 <pre><code>## Running MCMC with 4 parallel chains, with 1 thread(s) per chain...
 ## 
 ## Chain 1 Iteration:   1 / 1000 [  0%]  (Warmup) 
@@ -509,7 +496,16 @@ sigma ~ dexp(1)
 ## Chain 1 Iteration: 500 / 1000 [ 50%]  (Warmup) 
 ## Chain 1 Iteration: 501 / 1000 [ 50%]  (Sampling) 
 ## Chain 1 Iteration: 600 / 1000 [ 60%]  (Sampling) 
-## Chain 2 Iteration:   1 / 1000 [  0%]  (Warmup) 
+## Chain 1 Iteration: 700 / 1000 [ 70%]  (Sampling) 
+## Chain 1 Iteration: 800 / 1000 [ 80%]  (Sampling) 
+## Chain 1 Iteration: 900 / 1000 [ 90%]  (Sampling) 
+## Chain 1 Iteration: 1000 / 1000 [100%]  (Sampling)</code></pre>
+<pre><code>## Chain 1 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+## Chain 1 Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpz0t3wx/model-ab22bdeeb9c.stan&#39;, line 44, column 4 to column 29)
+## Chain 1 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+## Chain 1 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+## Chain 1</code></pre>
+<pre><code>## Chain 2 Iteration:   1 / 1000 [  0%]  (Warmup) 
 ## Chain 2 Iteration: 100 / 1000 [ 10%]  (Warmup) 
 ## Chain 2 Iteration: 200 / 1000 [ 20%]  (Warmup) 
 ## Chain 2 Iteration: 300 / 1000 [ 30%]  (Warmup) 
@@ -518,6 +514,97 @@ sigma ~ dexp(1)
 ## Chain 2 Iteration: 501 / 1000 [ 50%]  (Sampling) 
 ## Chain 2 Iteration: 600 / 1000 [ 60%]  (Sampling) 
 ## Chain 2 Iteration: 700 / 1000 [ 70%]  (Sampling) 
+## Chain 2 Iteration: 800 / 1000 [ 80%]  (Sampling) 
+## Chain 2 Iteration: 900 / 1000 [ 90%]  (Sampling) 
+## Chain 2 Iteration: 1000 / 1000 [100%]  (Sampling)</code></pre>
+<pre><code>## Chain 2 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+## Chain 2 Exception: beta_lpdf: First shape parameter is inf, but must be positive finite! (in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpz0t3wx/model-ab22bdeeb9c.stan&#39;, line 40, column 4 to column 35)
+## Chain 2 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+## Chain 2 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+## Chain 2</code></pre>
+<pre><code>## Chain 3 Iteration:   1 / 1000 [  0%]  (Warmup) 
+## Chain 3 Iteration: 100 / 1000 [ 10%]  (Warmup) 
+## Chain 3 Iteration: 200 / 1000 [ 20%]  (Warmup) 
+## Chain 3 Iteration: 300 / 1000 [ 30%]  (Warmup) 
+## Chain 3 Iteration: 400 / 1000 [ 40%]  (Warmup) 
+## Chain 3 Iteration: 500 / 1000 [ 50%]  (Warmup) 
+## Chain 3 Iteration: 501 / 1000 [ 50%]  (Sampling) 
+## Chain 3 Iteration: 600 / 1000 [ 60%]  (Sampling) 
+## Chain 3 Iteration: 700 / 1000 [ 70%]  (Sampling) 
+## Chain 3 Iteration: 800 / 1000 [ 80%]  (Sampling) 
+## Chain 3 Iteration: 900 / 1000 [ 90%]  (Sampling) 
+## Chain 3 Iteration: 1000 / 1000 [100%]  (Sampling) 
+## Chain 4 Iteration:   1 / 1000 [  0%]  (Warmup) 
+## Chain 4 Iteration: 100 / 1000 [ 10%]  (Warmup) 
+## Chain 4 Iteration: 200 / 1000 [ 20%]  (Warmup) 
+## Chain 4 Iteration: 300 / 1000 [ 30%]  (Warmup) 
+## Chain 4 Iteration: 400 / 1000 [ 40%]  (Warmup) 
+## Chain 4 Iteration: 500 / 1000 [ 50%]  (Warmup) 
+## Chain 4 Iteration: 501 / 1000 [ 50%]  (Sampling) 
+## Chain 4 Iteration: 600 / 1000 [ 60%]  (Sampling) 
+## Chain 4 Iteration: 700 / 1000 [ 70%]  (Sampling) 
+## Chain 4 Iteration: 800 / 1000 [ 80%]  (Sampling) 
+## Chain 4 Iteration: 900 / 1000 [ 90%]  (Sampling) 
+## Chain 4 Iteration: 1000 / 1000 [100%]  (Sampling)</code></pre>
+<pre><code>## Chain 4 Informational Message: The current Metropolis proposal is about to be rejected because of the following issue:
+## Chain 4 Exception: beta_lpdf: Second shape parameter is inf, but must be positive finite! (in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpz0t3wx/model-ab22bdeeb9c.stan&#39;, line 40, column 4 to column 35)
+## Chain 4 If this warning occurs sporadically, such as for highly constrained variable types like covariance matrices, then the sampler is fine,
+## Chain 4 but if this warning occurs often then your model may be either severely ill-conditioned or misspecified.
+## Chain 4</code></pre>
+<pre><code>## Chain 1 finished in 0.1 seconds.
+## Chain 2 finished in 0.1 seconds.
+## Chain 3 finished in 0.1 seconds.
+## Chain 4 finished in 0.1 seconds.
+## 
+## All 4 chains finished successfully.
+## Mean chain execution time: 0.1 seconds.
+## Total execution time: 0.2 seconds.</code></pre>
+</div>
+<div id="m3.-repeat-the-divorce-data-measurement-error-models-but-this-time-double-the-standard-errors.-can-you-explain-how-doubling-the-standard-errors-impacts-inference" class="section level3">
+<h3><strong>15M3. Repeat the divorce data measurement error models, but
+this time double the standard errors. Can you explain how doubling the
+standard errors impacts inference?</strong><br />
+</h3>
+<pre class="r"><code># data
+data(WaffleDivorce)
+x &lt;-WaffleDivorce
+# create the data list
+dlist &lt;-list(
+D_obs = standardize(x$Divorce),
+D_sd_2 = 2*(x$Divorce.SE/sd(x$Divorce)),
+M = standardize(x$Marriage),
+A = standardize(x$MedianAgeMarriage),
+N = nrow(x))
+
+# model
+set.seed(7734)
+m15.1 &lt;-ulam(
+alist(
+D_obs ~ dnorm(D_true, D_sd_2),
+vector[N]:D_true ~ dnorm(mu,sigma),
+mu &lt;-a + bA * A + bM * M,
+a ~ dnorm(0,0.2),
+bA ~ dnorm(0,0.5),
+bM ~ dnorm(0,0.5),
+sigma ~ dexp(1)
+) , data = dlist, chains = 4, cores = 4)</code></pre>
+<pre><code>## Running MCMC with 4 parallel chains, with 1 thread(s) per chain...
+## 
+## Chain 1 Iteration:   1 / 1000 [  0%]  (Warmup) 
+## Chain 1 Iteration: 100 / 1000 [ 10%]  (Warmup) 
+## Chain 1 Iteration: 200 / 1000 [ 20%]  (Warmup) 
+## Chain 1 Iteration: 300 / 1000 [ 30%]  (Warmup) 
+## Chain 1 Iteration: 400 / 1000 [ 40%]  (Warmup) 
+## Chain 1 Iteration: 500 / 1000 [ 50%]  (Warmup) 
+## Chain 1 Iteration: 501 / 1000 [ 50%]  (Sampling) 
+## Chain 2 Iteration:   1 / 1000 [  0%]  (Warmup) 
+## Chain 2 Iteration: 100 / 1000 [ 10%]  (Warmup) 
+## Chain 2 Iteration: 200 / 1000 [ 20%]  (Warmup) 
+## Chain 2 Iteration: 300 / 1000 [ 30%]  (Warmup) 
+## Chain 2 Iteration: 400 / 1000 [ 40%]  (Warmup) 
+## Chain 2 Iteration: 500 / 1000 [ 50%]  (Warmup) 
+## Chain 2 Iteration: 501 / 1000 [ 50%]  (Sampling) 
+## Chain 2 Iteration: 600 / 1000 [ 60%]  (Sampling) 
 ## Chain 3 Iteration:   1 / 1000 [  0%]  (Warmup) 
 ## Chain 3 Iteration: 100 / 1000 [ 10%]  (Warmup) 
 ## Chain 3 Iteration: 200 / 1000 [ 20%]  (Warmup) 
@@ -526,24 +613,26 @@ sigma ~ dexp(1)
 ## Chain 4 Iteration: 100 / 1000 [ 10%]  (Warmup) 
 ## Chain 4 Iteration: 200 / 1000 [ 20%]  (Warmup) 
 ## Chain 4 Iteration: 300 / 1000 [ 30%]  (Warmup) 
-## Chain 4 Iteration: 400 / 1000 [ 40%]  (Warmup) 
+## Chain 1 Iteration: 600 / 1000 [ 60%]  (Sampling) 
 ## Chain 1 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 1 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 1 Iteration: 900 / 1000 [ 90%]  (Sampling) 
 ## Chain 1 Iteration: 1000 / 1000 [100%]  (Sampling) 
+## Chain 2 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 2 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 2 Iteration: 900 / 1000 [ 90%]  (Sampling) 
 ## Chain 2 Iteration: 1000 / 1000 [100%]  (Sampling) 
 ## Chain 3 Iteration: 400 / 1000 [ 40%]  (Warmup) 
 ## Chain 3 Iteration: 500 / 1000 [ 50%]  (Warmup) 
 ## Chain 3 Iteration: 501 / 1000 [ 50%]  (Sampling) 
+## Chain 4 Iteration: 400 / 1000 [ 40%]  (Warmup) 
 ## Chain 4 Iteration: 500 / 1000 [ 50%]  (Warmup) 
 ## Chain 4 Iteration: 501 / 1000 [ 50%]  (Sampling) 
 ## Chain 4 Iteration: 600 / 1000 [ 60%]  (Sampling) 
-## Chain 4 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 1 finished in 0.2 seconds.
 ## Chain 2 finished in 0.2 seconds.
 ## Chain 3 Iteration: 600 / 1000 [ 60%]  (Sampling) 
+## Chain 4 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 4 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 4 Iteration: 900 / 1000 [ 90%]  (Sampling) 
 ## Chain 3 Iteration: 700 / 1000 [ 70%]  (Sampling) 
@@ -552,7 +641,7 @@ sigma ~ dexp(1)
 ## Chain 3 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 3 Iteration: 900 / 1000 [ 90%]  (Sampling) 
 ## Chain 3 Iteration: 1000 / 1000 [100%]  (Sampling) 
-## Chain 3 finished in 0.9 seconds.
+## Chain 3 finished in 0.8 seconds.
 ## 
 ## All 4 chains finished successfully.
 ## Mean chain execution time: 0.4 seconds.
@@ -635,7 +724,8 @@ the variables.<br />
 <div id="m4.-simulate-data-from-this-dag-x-y-z.-now-fit-a-model-that-predicts-y-using-both-x-and-z.-what-kind-of-confound-arises-in-terms-of-inferring-the-causal-influence-of-x-on-y" class="section level3">
 <h3><strong>15M4. Simulate data from this DAG: X → Y → Z. Now fit a
 model that predicts Y using both X and Z. What kind of confound arises,
-in terms of inferring the causal influence of X on Y? </strong></h3>
+in terms of inferring the causal influence of X on Y?</strong><br />
+</h3>
 <pre class="r"><code># simulate the variables
 
 set.seed(123)
@@ -695,7 +785,8 @@ the data.<br />
 the posterior estimates of cat presence (PrC1) to the true simulated
 values. How good is the model at inferring the missing data? Can you
 think of a way to change the simulation so that the precision of the
-inference is stronger? </strong></h3>
+inference is stronger?</strong><br />
+</h3>
 <pre class="r"><code># data
 set.seed(9) 
 N_houses &lt;-2000L
@@ -735,17 +826,17 @@ gq &gt; vector[N]:PrC1 &lt;- exp(lpC1) / (exp(lpC1) + exp(lpC0)),
 gq &gt; vector[N]:lpC1 &lt;- log(k) + poisson_lpmf(notes[i] | exp(a + b)),
 gq &gt; vector[N]:lpC0 &lt;- log(1 - k) + poisson_lpmf(notes[i]|exp(a))
 ), data = dat, chains = 4, cores = 4)</code></pre>
-<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/RtmprID6oQ/model-5cbb566c45c8.stan&#39;, line 3, column 4: Declaration
+<pre><code>## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpz0t3wx/model-ab2263ec25ed.stan&#39;, line 3, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/RtmprID6oQ/model-5cbb566c45c8.stan&#39;, line 4, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpz0t3wx/model-ab2263ec25ed.stan&#39;, line 4, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
 ##     stanc
-## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/RtmprID6oQ/model-5cbb566c45c8.stan&#39;, line 5, column 4: Declaration
+## Warning in &#39;/var/folders/bw/g1kmw0sn7178d2rsm5xppyv80000gn/T/Rtmpz0t3wx/model-ab2263ec25ed.stan&#39;, line 5, column 4: Declaration
 ##     of arrays by placing brackets after a variable name is deprecated and
 ##     will be removed in Stan 2.32.0. Instead use the array keyword before the
 ##     type. This can be changed automatically using the auto-format flag to
@@ -768,9 +859,9 @@ gq &gt; vector[N]:lpC0 &lt;- log(1 - k) + poisson_lpmf(notes[i]|exp(a))
 ## Chain 2 Iteration: 300 / 1000 [ 30%]  (Warmup) 
 ## Chain 3 Iteration: 300 / 1000 [ 30%]  (Warmup) 
 ## Chain 4 Iteration: 300 / 1000 [ 30%]  (Warmup) 
+## Chain 3 Iteration: 400 / 1000 [ 40%]  (Warmup) 
 ## Chain 1 Iteration: 400 / 1000 [ 40%]  (Warmup) 
 ## Chain 2 Iteration: 400 / 1000 [ 40%]  (Warmup) 
-## Chain 3 Iteration: 400 / 1000 [ 40%]  (Warmup) 
 ## Chain 4 Iteration: 400 / 1000 [ 40%]  (Warmup) 
 ## Chain 1 Iteration: 500 / 1000 [ 50%]  (Warmup) 
 ## Chain 1 Iteration: 501 / 1000 [ 50%]  (Sampling) 
@@ -781,15 +872,15 @@ gq &gt; vector[N]:lpC0 &lt;- log(1 - k) + poisson_lpmf(notes[i]|exp(a))
 ## Chain 4 Iteration: 500 / 1000 [ 50%]  (Warmup) 
 ## Chain 4 Iteration: 501 / 1000 [ 50%]  (Sampling) 
 ## Chain 1 Iteration: 600 / 1000 [ 60%]  (Sampling) 
-## Chain 3 Iteration: 600 / 1000 [ 60%]  (Sampling) 
 ## Chain 2 Iteration: 600 / 1000 [ 60%]  (Sampling) 
+## Chain 3 Iteration: 600 / 1000 [ 60%]  (Sampling) 
 ## Chain 4 Iteration: 600 / 1000 [ 60%]  (Sampling) 
+## Chain 3 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 1 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 2 Iteration: 700 / 1000 [ 70%]  (Sampling) 
-## Chain 3 Iteration: 700 / 1000 [ 70%]  (Sampling) 
 ## Chain 4 Iteration: 700 / 1000 [ 70%]  (Sampling) 
-## Chain 3 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 1 Iteration: 800 / 1000 [ 80%]  (Sampling) 
+## Chain 3 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 2 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 4 Iteration: 800 / 1000 [ 80%]  (Sampling) 
 ## Chain 1 Iteration: 900 / 1000 [ 90%]  (Sampling) 
@@ -813,6 +904,7 @@ gq &gt; vector[N]:lpC0 &lt;- log(1 - k) + poisson_lpmf(notes[i]|exp(a))
 # using correlation to evaluate inference
 post_samples &lt;- extract.samples(m15.9)
 cat_presence_estimates &lt;- post_samples$PrC1
+# mean_cat_presence_estimates &lt;- rowMeans(post_samples$PrC1)
 true_values &lt;- as.numeric(dat$cat)
 cor_result &lt;- cor(cat_presence_estimates, true_values)
 #print(cor_result)
@@ -831,13 +923,14 @@ of the inference is to increase the sample size, making the estimation
 of the parameters more precise. Another way is to collect more and/or
 better information to improve the model. For example, if we knew the
 number of notes produced by each bird, that could be used to further
-improve the inference.</p>
+improve the inference.<br />
+</p>
 </div>
 <div id="m6.-return-to-the-four-dog-eats-homework-missing-data-examples.-simulate-each-and-then-fit-one-or-more-models-to-try-to-recover-valid-estimates-for-s-h." class="section level3">
 <h3><strong>15M6. Return to the four dog-eats-homework missing data
 examples. Simulate each and then fit one or more models to try to
-recover valid estimates for S → H. </strong></h3>
-<p>[need to work on second part of question later. ]</p>
+recover valid estimates for S → H.</strong><br />
+</h3>
 <pre class="r"><code># simulate our variables
 N &lt;- 100
 S &lt;- rnorm(N)
@@ -871,6 +964,20 @@ S4 &lt;- rnorm(N4)
 H4 &lt;- rbinom(N4, size = 10, inv_logit(S4))
 D4 &lt;- ifelse(H4 &lt; 5,1,0)
 Hm4 &lt;- H4; Hm4[D4==1] &lt;- NA</code></pre>
+<p>Now, I will try to recover the valid estimates below.<br />
+</p>
+<pre class="r"><code># make the model
+H4_factor &lt;- as.factor(H4)
+model &lt;- glm(H4_factor ~ S4, family = binomial())
+
+# make predictions for H
+predictions &lt;- predict(model, data.frame(S = S4), type = &quot;response&quot;)
+
+# we are going to use the missing values
+H4[is.na(Hm4)] &lt;- predictions[is.na(Hm4)]</code></pre>
+<p>This is my best try at fitting the first model for the last
+simulation. I replaced the missing values in the original dataset with
+the imputed values from the predictions.</p>
 </div>
 
 
