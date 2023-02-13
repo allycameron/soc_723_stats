@@ -1,0 +1,28 @@
+---
+title: "multi-level models class practice"
+output: html_document
+date: "2023-02-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# between variance
+between_var <- d3 %>% 
+  group_by(cluster_name) %>% 
+  mutate(m_hours = mean(hours)) %>% 
+  ungroup() %>% 
+  summarize(between_var_hr = var(m_hours))
+```
+
+
+different types of pooling 
+
+# no pooling
+
+```{r}
+
+```
+

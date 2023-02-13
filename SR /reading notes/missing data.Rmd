@@ -1,0 +1,143 @@
+---
+title: "missing data"
+output: html_document
+date: "2023-02-07"
+---
+
+# Chatper 15: Missing Data\
+
+# 15.1: Measurement Error\
+
+Let's see how to incorporate measurement error into the model.
+
+```{r}
+library(rethinking) 
+data(WaffleDivorce)
+d <- WaffleDivorce
+# points
+plot( d$Divorce ~ d$MedianAgeMarriage, ylim = c(4,15),
+xlab = "Median age marriage",ylab = "Divorce rate")
+# standarderrors
+for (i in 1: nrow(d)){
+ci <-d$Divorce[i] + c(-1,1) * d$Divorce.SE[i]
+x <- d$MedianAgeMarriage[i]
+lines( c(x,x),ci)
+}
+```
+
+There is a lot of variation in how uncertain the observed divorce rate (reflected in varying lengths of the vertical line segments).\
+
+### 15.1.1: Error on the outcome
+
+How do we simulate measurement error?\
+  1. generate the true values of the variables\
+  2. simulate the observatino process (where the measurement error would occur)\
+  
+  
+We have reported standard errors... how can we use this information in the statistical model?\
+
+Here is how to define the error distribution for each divorce rate:\
+
+$$
+D_{OBS,i} \sim Normal(D_{TRUE,i},D_{SE,i})\\
+D_{TRUE,i} \sim Normal(\mu_i, \sigma)\\
+\mu_i = \alpha + \beta_AAi + \beta_MMi\\
+\alpha \sim Normal(0,0.2)\\
+\beta_A \sim Normal(0,0.5)\\
+\beta_M \sim Normal(0,0.5)\\
+\sigma \sim Exponential(1)\\
+$$
+This is like a linear regression but with the addition of the top line which connects the observation to the true value
+
+Let's put it into code
+
+```{r}
+library(tidyverse)
+library(dplyr)
+
+# transform variables as needed
+dlist <- d %>% 
+  mutate(D_obs = standardize(Divorce),
+       D_sd = Divorce.SE/sd(Divorce),
+       M = standardize(Marriage),
+       A = standardize(MedianAgeMarriage),
+       N = nrow(d)) 
+
+# create model with d_obs and d_sd
+
+m15.1 <- ulam(
+alist(
+D_obs ~ dnorm(D_true, D_sd),
+vector[N]: D_true ~ dnorm(mu, sigma),
+mu <- a + bA * A + bM * M,
+a ~ dnorm(0, 0.2),
+bA ~ dnorm(0, 0.5),
+bM ~ dnorm(0, 0.5),
+sigma ~ dexp(1)) , data = dlist, chains = 4, cores = 4)
+
+precis(m15.1, 2)
+
+```
+Comparing with the results for this model in chapter 5 and now, we see that including measurement error reduces the association between divorce and age at marriage (bA). \
+
+This is not always the case though, sometimes  measurement error can hide effects (not just exaggerate like in this example).\
+
+###15.1.2: Error on the outcome and predictor. \
+
+
+$$
+D_{OBS,i} \sim Normal(D_{TRUE,i},D_{SE,i})\\
+D_{TRUE,i} \sim Normal(\mu_i, \sigma)\\
+\mu_i = \alpha + \beta_AAi + \beta_MM_{TRUE,i}\\
+M_{OBS,i} \sim Normal(M_{TRUE,i},M_{SE,i})\\
+M_{TRUE,i} \sim Normal(0,1)\\
+\alpha \sim Normal(0,0.2)\\
+\beta_A \sim Normal(0,0.5)\\
+\beta_M \sim Normal(0,0.5)\\
+\sigma \sim Exponential(1)\\
+$$
+
+
+Let's see it in code.\
+
+```{r}
+# using same data from above, add M_obs and M_sd
+
+dlist <- dlist %>% 
+  mutate(M_obs = standardize(Marriage),
+         M_sd = Marriage.SE/sd(Marriage),)
+
+m15.2 <-ulam(
+alist(
+D_obs ~ dnorm(D_true, D_sd),
+vector[N]: D_true ~ dnorm(mu,sigma),
+mu <- a + bA * A + bM * M_true[i],
+M_obs ~ dnorm(M_true, M_sd),
+vector[N]: M_true ~ dnorm(0,1),
+a ~ dnorm(0,0.2),
+bA ~ dnorm(0,0.5),
+bM ~ dnorm(0,0.5),
+sigma ~ dexp(1)
+) , data = dlist, chains = 4, cores = 4)
+```
+
+Notice that adding error on the predictor didn't change the major inference, but it did provide updated estimates of marriage rates itself. \
+
+
+# 15.2: Missing Data\
+
+What can be done when there is no measurement at all?\
+
+  1. complete case analysis = drop all cases with any missing values\
+        - can produce bias, depnding upon the causal details
+  2. replace missing values with some assumed value (like the mean or a reference value like zero)\
+    - the model will think we know these values certainly instead of as a guess
+  3. think causally about missingness and use the model to impute missing values
+    
+    
+# CLASS NOTES
+    
+Standard error = uncertainty about the error assuming everything is measured perfectly\
+Measurement error = uncertainty in the measurement\
+  
+  

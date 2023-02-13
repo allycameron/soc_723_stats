@@ -1,0 +1,482 @@
+---
+title: "SR 13 and 14"
+output: html_document
+date: "2023-01-31"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# chapter 14\
+
+### *13E1. Which of the following priors will produce more shrinkage in the estimates?*\
+$$
+(a) \alpha_{TANK} \sim Normal(0, 1)\\
+(b) \alpha_{TANK} \sim Normal(0, 2)\\
+$$
+Since larger variation means less shrinkage, (a) which has less variation will have more shrinkage.\
+
+### **13E2. Rewrite the following model as a multi-level model.**\
+$$
+y_i \sim Binomial(1, p_i)\\
+logit(p_i) = \alpha_{GROUP[i]} + \beta x_i\\
+\alpha_{GROUP} \sim Normal(0, 1.5)\\
+\beta \sim Normal(0, 0.5)
+$$
+
+Rewritten: \
+$$
+y_i \sim Binomial(1, p_i)\\
+logit(p_i) = \alpha_{GROUP[i]} + \beta x_i\\
+\alpha_j \sim Normal(\bar\alpha, \sigma_{\alpha})\\
+\beta_j \sim Normal(0,0.5)\\
+\bar\alpha \sim Normal(0, 1.5)\\
+\sigma_{\alpha} \sim Exponential(1)\\
+
+
+$$
+
+
+### **13E3. Rewrite the following model as a multi-level model.**\
+$$
+y_i \sim Normal(\mu_i, \sigma)\\
+\mu_i = \alpha_{GROUP[i]} +\beta x_i\\
+\alpha_{GROUP} \sim Normal(0, 5)\\
+\beta \sim Normal(0, 1)\\
+\sigma \sim Exponential(1)\\
+$$
+
+Rewritten:\
+$$
+y_i \sim Normal(\mu_i, \sigma)\\
+\mu_i = \alpha_{GROUP[i]} +\beta x_i\\
+\alpha_{j} \sim Normal(\bar\alpha, \sigma_{\alpha})\\
+\beta_j \sim Normal(0,1)\\
+\bar\alpha \sim Normal(0, 5)\\
+\sigma_{\alpha} \sim Exponential(1)\\
+\sigma \sim Exponential(1)
+$$
+### **13E4. Write a mathematical model formula for a Poisson regression with varying intercepts.** 
+
+$$
+\tau_i \sim Poisson(\lambda_i)\\
+log\lambda_i = \alpha_i + \beta x_i\\
+\alpha_j \sim Normal(\bar\alpha, \sigma_{\alpha})\\
+\bar\alpha \sim Normal(0, 10) \\
+\beta_j \sim Normal(0,0.2) \\
+\sigma_{\alpha} \sim Exponential(1)
+$$
+
+
+### **13E5. Write a mathematical model formula for a Poisson regression with two different kinds of varying intercepts, a cross-classified model.**\
+$$
+\tau_i \sim Poisson(\lambda_i)\\
+log\lambda_i = \alpha_{j[i]} + \gamma_{j[i]}+ \beta_{j[i]}\\
+\beta_j \sim Normal(0,0.5) \\
+\alpha_j \sim Normal(\bar\alpha, \sigma_{\alpha})\\
+\gamma_j \sim Normal(0, \sigma_{\gamma})\\
+\bar\alpha \sim Normal(0, 10) \\
+\sigma_{\alpha} \sim Exponential(1)\\
+\sigma_{\gamma} \sim Exponential(1)
+$$
+
+
+### **13M1. Revisit the Reed frog survival data, `data(reedfrogs)`, and add the `predation` and `size` treatment variables to the varying intercepts model. Consider models with either main effect alone, both main effects, as well as a model including both and their interaction. Instead of focusing on inferences about these two predictor variables, focus on the inferred variation across tanks. Explain why it changes as it does across models.**\
+
+First, lets load in the data and create the models. \
+
+```{r}
+library(rethinking) 
+library(tidyverse)
+library(dplyr)
+data(reedfrogs)
+d <- tibble(reedfrogs)
+d <- d %>% 
+  mutate(tank = 1:nrow(d)) %>% 
+  mutate(big = if_else(size == "big", 1L, 0L)) %>% 
+  mutate(pred = if_else(pred == "no", 0L, 1L)) %>% 
+  mutate(N = density) %>% 
+  mutate(S = surv) %>% 
+  select(S, N, tank, big, pred)
+
+# make model with one main effect alone
+
+m13.1a<- ulam( alist(
+S ~ dbinom(N, p),
+logit(p) <- a[tank] + b * big,
+b ~ dnorm(0, 0.5), 
+a[tank] ~ dnorm(a_bar, sigma), 
+a_bar ~ dnorm(0, 1.5),
+sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
+
+# make model with both main effect alone
+m13.1b <- ulam( alist(
+S ~ dbinom(N,p),
+logit(p) <- a[tank] + b * big + x * pred,
+b ~ dnorm(0, 0.5), 
+x ~ dnorm(0, 0.5), 
+a[tank] ~ dnorm(a_bar, sigma), 
+a_bar ~ dnorm(0, 1.5),
+sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
+
+# make the model with interactions
+
+m13.1c  <- ulam( alist(
+S ~ dbinom(N,p),
+logit(p) <- a[tank] + b * big + x * pred + z * big*pred,
+b ~ dnorm(0, 0.5), 
+x ~ dnorm(0,0.5),
+z ~ dnorm(0,0.5),
+a[tank] ~ dnorm(a_bar, sigma), 
+a_bar ~ dnorm(0, 1.5),
+sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
+
+coeftab(m13.1c, m13.1b, m13.1a, rotate = TRUE)
+
+```
+
+
+### **13M2. Compare the models you fit just above, using WAIC. Can you reconcile the differences in WAIC with the posterior distributions of the models?**\
+```{r}
+#compare(m13.1a, m13.1b, m13.1c)
+```
+I am surprised that the models all have such similar WAIC values when the variation between them seems so drastic. Before, the sigma value for a was almost double that of b or c. I'm wondering why doesn't this translate to the WAIC values. 
+
+[WAITING FOR FEEDBACK]
+
+
+### **13M3. Re-estimate the basic Reed frog varying intercept model, but now using a Cauchy distribution in place of the Gaussian distribution for the varying intercepts. That is, fit this model:**\
+$$
+s_i \sim Binomial(n_i, p_i)\\
+logit(p_i) = \alpha_{TANK[i]}\\
+\alpha_{TANK} \sim Cauchy(\alpha,\sigma)\\
+\alpha \sim Normal(0, 1)\\
+\sigma \sim Exponential(1)\\
+$$
+
+Let's put this into code:\
+```{r}
+
+# with gaussian prior
+#set.seed(013122)
+#m13.1g  <- ulam(
+#alist(
+#S ~ dbinom(N,p),
+#logit(p) <- a[tank],
+#a[tank] ~ dnorm(a_bar, sigma), 
+#a_bar ~ dnorm(0, 1.5),
+#sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
+
+# with cauchy prior
+
+#m13.1 <- ulam( alist(
+#S ~ dbinom(N, p),
+#logit(p) <- a[tank],
+#a[tank] ~ dcauchy(a_bar, sigma), 
+#a_bar ~ dnorm(0, 1),
+#sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
+
+# question on divergent transitions
+#divergent(m13.1)
+
+# questions on comparing means
+# coeftab(m13.1, m13.1g)
+
+
+```
+
+
+### **(You are likely to see many divergent transitions for this model. Can you figure out why? Can you fix them?) Compare the posterior means of the intercepts, $\alpha_{TANK}$, to the posterior means produced in the chapter, using the customary Gaussian prior. Can you explain the pattern of differences? Take note of any change in the mean $\alpha$ as well.**\
+
+
+I actually see 0 divergent transitions within my model. However, if there were some I would say this is due to steepness in some region of the parameter space making it harder to make predictions well. We can reparameterize or change the `alpha_delta` to try to deal with this issue. \
+
+#### **Now, lets compare the means of the intercepts for the Cauchy and the Gaussian prior.**\ The Cauchy prior allows for larger intercepts to exist, i think this is interesting when looking at how similar their bar alphas are (1.41  - Cauchy vs. 1.34 - Gaussian). I also notice that these higher numbers fo rthe Cauchy graph correspond to pretty high numbers for the Gaussian distribution (all around 3, except for a[33]) \
+
+
+### **13M4. Now use a Student-t distribution with ν = 2 for the intercepts:**\
+$\alpha_{TANK} ∼ Student(2, \alpha,\sigma)$ \
+**Refer back to the Student-t example in Chapter 7 (page 234), if necessary. Compare the resulting posterior to both the original model and the Cauchy model in 13M3. Can you explain the differences and similarities in shrinkage in terms of the properties of these distributions?**\
+```{r}
+#student t distribution in prior
+library(rethinking)
+library(dplyr)
+set.seed(122022)
+m13.1s <- ulam( alist(
+S ~ dbinom(N, p),
+logit(p) <- a[tank],
+a[tank] ~ dstudent(2, a_bar, sigma), 
+a_bar ~ dnorm(0, 1.5),
+sigma ~ dexp(1)), data = d, chains = 4, log_lik = TRUE)
+
+# comparison
+# coeftab(m13.1, m13.1g, m13.1s)
+```
+
+[WAITING FOR FEEDBACK]\
+
+
+### **13M5. Modify the cross-classified chimpanzees model m13.4 so that the adaptive prior for blocks contains a parameter $\bar\gamma$ for its mean:**\
+$$
+\gamma \sim Normal(\bar\gamma,\sigma_{\gamma})\\
+\bar\gamma \sim Normal(0, 1.5)
+$$
+
+## **Compare this model to m13.4. What has including $\bar\gamma$ done?**\
+
+
+```{r}
+
+# load data
+data(chimpanzees)
+data <- tibble(chimpanzees)
+
+# transform data, and select only things needed for the model
+dat_list  <- data %>% 
+  mutate(treatment = 1 + prosoc_left + 2 * condition) %>% 
+  mutate(block_id = block) %>% 
+  mutate(treatment = as.integer(treatment)) %>% 
+  select(pulled_left, actor, block_id, treatment)
+
+# model without gamma-bar
+set.seed(13)
+m13.4a <- ulam(
+alist(
+pulled_left ~ dbinom(1,p),
+logit(p) <- a[actor] + g[block_id] + b[treatment],
+b[treatment] ~ dnorm(0, 0.5),
+a[actor] ~ dnorm(a_bar, sigma_a),
+g[block_id] ~ dnorm(0, sigma_g),
+a_bar ~ dnorm(0,1.5),
+sigma_a ~ dexp(1),
+sigma_g ~ dexp(1)) , data = dat_list, chains = 4, cores = 4, log_lik = TRUE)
+
+# model with gamma-bar
+set.seed(13)
+m13.4b <- ulam(alist(
+pulled_left ~ dbinom(1, p),
+logit(p) <- a[actor] + g[block_id] + b[treatment],
+b[treatment] ~ dnorm(0, 0.5),
+a[actor] ~ dnorm(a_bar, sigma_a),
+g[block_id] ~ dnorm(g_bar, sigma_g),
+a_bar ~ dnorm(0, 1.5),
+g_bar ~ dnorm(0, 1.5),
+sigma_a ~ dexp(1),
+sigma_g ~ dexp(1)
+) ,data = dat_list, chains = 4,cores = 4, log_lik = TRUE)
+
+# compare
+
+compare(m13.4a, m13.4b)
+precis(m13.4b, 2, pars = c("a", "b","g", "sigma_g", "g_bar"))
+precis(m13.4a, 2, pars = c("a", "b", "g", "sigma_g"))
+```
+
+The coefficients for the model with the g-bar have higher values than the model without the g-bar.  This makes sense because these coefficients were not allowed to center around anything but 0. Also, the n_eff values for the model with g-bar are much lower than the n_eff values for the model without the g-bar. This means that the model with the g-bar is more flexible (I believe?)\
+
+## **13M6. Sometimes the prior and the data(through the likelihood) are in conflict, because they concentrate around different regions of parameter space. What happens in these cases depends a lot upon the shape of the tails of the distributions. Likewise, the tails of distributions strongly influence can outliers are shrunk or not towards the mean. I want you to consider four different models to fit to one observation at y = 0. The models differ only in the distributions assigned to the likelihood and prior. Here are the four models:**\
+
+Model NN:\
+$$
+y \sim Normal(\mu, 1)\\
+\mu \sim Normal(10, 1)
+$$
+
+```{r}
+# Let's load the data and build the model
+data(chimpanzees)
+data2 <- tibble(chimpanzees) %>% 
+  select(pulled_left)
+
+# Model NN
+m_NN <- ulam( 
+  alist(
+    pulled_left ~ dnorm(mu, 1),
+    mu ~ dnorm(10, 1)), 
+  data = data2, chains = 2)
+```
+
+
+Model TN:\
+$$
+y \sim Student(2, \mu, 1)\\
+\mu \sim  Normal(10, 1)
+$$
+
+```{r}
+# Model TN
+m_TN <- ulam( 
+  alist(
+    pulled_left ~ dstudent(2,mu, 1),
+    mu ~ dnorm(10, 1)), 
+  data = data2, chains = 2)
+```
+
+
+Model NT:\
+$$
+y \sim Normal(\mu, 1)\\
+\mu \sim Student(2, 10, 1)
+$$
+
+```{r}
+# Model NT
+m_NT <- ulam( 
+  alist(
+    pulled_left ~ dnorm(mu, 1),
+    mu ~ dstudent(2,10, 1)), 
+  data = data2, chains = 2)
+```
+
+
+Model TT:\
+$$
+y \sim Student(2, \mu, 1)\\
+\mu \sim Student(2, 10, 1)
+$$
+
+```{r}
+# Model TT
+m_TT <- ulam( 
+  alist(
+    pulled_left ~ dstudent(2,mu, 1),
+    mu ~ dstudent(2,10, 1)), 
+  data = data2, chains = 2)
+```
+
+## **Estimate the posterior distributions for these models and compare them. Can you explain the results, using the properties of the distributions?**\
+
+```{r}
+# estimate for NN
+library(tidybayes)
+library(dplyr)
+
+
+# Extract posterior samples
+samples_NN <- extract.samples(m_NN)
+samples_TN <- extract.samples(m_TN)
+samples_NT <- extract.samples(m_NT)
+samples_TT <- extract.samples(m_TT)
+
+
+dens(samples_NN$mu, col="darkorange3", main = "Posterior of mu", xlab = "mu")
+dens(samples_TN$mu, col="lightskyblue", add = TRUE)
+dens(samples_NT$mu, col="mediumpurple1", add=TRUE)
+dens(samples_TT$mu, col="darkolivegreen4", add=TRUE)
+legend("right", legend = c("samples_NN", "samples_TN", "samples_NT", "samples_TT" ), col = c("darkorange3", "lightskyblue", "mediumpurple1", "darkolivegreen4" ), pch = 1)
+
+```
+I notice that when the prior and the likelihood are the same distribution, the posterior distribution is more symmetric (see the green and orange lines). Also, the tails of Student-t distribution seems heavier than the Normal distribution, which indicates that it influences the shrinkage (because of the outliers).\
+
+
+# chapter 14\
+
+## **14E1. Add to the following model varying slopes on the predictor x.**\
+
+$$
+y_i \sim Normal(\mu_i, \sigma)\\
+\mu_i = \alpha_{GROUP[i]} + \beta x_i\\
+\alpha_{GROUP} \sim Normal(\bar\alpha, \sigma_{\alpha})\\
+\bar\alpha \sim Normal(0, 10)\\
+\beta \sim Normal(0, 1)\\
+\sigma \sim Exponential(1)\\
+\sigma_{\alpha} \sim Exponential(1)\\
+$$
+$$
+y_i \sim Normal(\mu_i, \sigma)\\
+\mu_i = \alpha_{GROUP[i]} + {\beta_{GROUP[i]}}x_i\\
+{
+\begin{bmatrix}
+\alpha_{GROUP} \\
+\beta_{GROUP}
+\end{bmatrix}
+}
+\sim MVNormal\left(\begin{bmatrix}
+\alpha \\
+\beta
+\end{bmatrix}
+, S \right)\\
+S =  
+\begin{pmatrix}
+      \sigma_{\alpha} & 0 \\
+     0 & \sigma_{\beta}
+\end{pmatrix}
+
+\begin{pmatrix}
+      \sigma_{\alpha} & 0 \\
+      0 & \sigma_{\beta}
+      \end{pmatrix}\\
+\alpha \sim Normal(0, 10)\\
+\beta \sim  Normal(0, 1)\\
+\sigma \sim HalfCauchy(0, 2)\\
+\sigma_{\alpha} \sim Exponential(1)\\
+\sigma_{\beta} \sim Exponential(1)\\
+R \sim LKJcorr(2)
+$$
+
+## **14E2. Think up a context in which varying intercepts will be positively correlated with varying slopes. Provide a mechanistic explanation for the correlation.**\
+
+## **14E3. When is it possible for a varying slopes model to have fewer effective parameters (as estimated by WAIC or PSIS) than the corresponding model with fixed (unpooled) slopes? Explain.**\
+
+## **14M1. Repeat the café robot simulation from the beginning of the chapter. This time, set $\rho$ to zero, so that there is no correlation between intercepts and slopes. How does the posterior distribution of the correlation reflect this change in the underlying simulation?**\
+
+## **14M2. Fit this multilevel model to the simulated café data:**
+$$
+W_i \sim Normal(\mu_i, \sigma)\\
+\mu_i = \alpha_{CAFÉ[i]} + \beta_{CAFÉ[i]}Ai\\
+\alpha_{CAFEÉ} \sim Normal(\alpha,\sigma_{\alpha})\\
+\beta_{CAFÉ} \sim Normal(\beta,\sigma_{\beta})\\
+\alpha \sim Normal(0, 10)\\
+\beta \sim Normal(0, 10)\\
+\sigma,\sigma_{\alpha}.\sigma_{\beta} \sim Exponential(1)
+$$
+
+```{r}
+
+# need to reorganize all of this code
+set.seed(22) 
+N_visits <-10
+N_cafes <- 20
+a <- 3.5 
+b <- (-1) 
+sigma_a <- 1
+sigma_b <- 0.5
+rho <- (-0.7)
+Mu <-c(a,b)
+
+cov_ab <-sigma_a*sigma_b*rho
+Sigma <-matrix(c(sigma_a^2,cov_ab,cov_ab,sigma_b^2),ncol=2)
+
+library(MASS) 
+set.seed(5) 
+vary_effects <-mvrnorm(N_cafes,Mu,Sigma)
+
+a_cafe  <-vary_effects[,1]
+b_cafe <-vary_effects[,2]
+
+# set up the data for tibble
+afternoon <-rep(0:1, N_visits * N_cafes / 2)
+cafe_id <-rep(1:N_cafes, each = N_visits)
+mu <-a_cafe[cafe_id] + b_cafe[cafe_id] * afternoon
+sigma <-0.5
+wait <-rnorm(N_visits*N_cafes,mu,sigma)
+data3 <- tibble(cafe=cafe_id,afternoon=afternoon,wait=wait)
+
+
+# create model
+set.seed(867530)
+m14.1 <-ulam(
+alist(
+wait ~ normal(mu,sigma),
+mu <- a_cafe[cafe] + b_cafe[cafe] * afternoon,
+a_cafe[cafe] ~ normal(a_bar, sigma_a),
+b_cafe[cafe] ~ normal(b_bar, sigma_b),
+a_bar ~ normal(0,10), 
+b_bar ~ normal(0,10), 
+sigma_a ~ dexp(1),
+sigma_b ~ dexp(1),
+sigma ~ dexp(1)
+) ,data = data3, chains = 4, cores = 4)
+```
+
+## **Use WAIC to compare this model to the model from the chapter, the one that uses a multi-variate Gaussian prior. Explain the result.**
