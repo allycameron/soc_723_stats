@@ -1,0 +1,219 @@
+---
+title: "TE - Chapter 7"
+output: html_document
+date: "2023-02-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### **1. You are making a simplified causal diagram to represent the data generating process of viewership for a TV show. Which of the following is true?**
+
+    a.  T - number of celebrities in the case could influence viewership\
+    b.  F - instead of two separate variables, "time of tv show" would be a better node\
+    c.  F - just because you can't measure it doesn't mean it shouldn't be included. budget could influence quality which could influence viewership.\
+    d.  F - this variable does not have a large enough effect on overall viewership\
+
+#### **2. Draw a causal diagram for the research question "do long shift hours make doctors give lower-quality care?" that incorporates the following features (and only the following features):**
+
+    a.  Long shift hours affect both how tired doctors are, and how much experience they have, both of which affect the quality of care\
+    b.  How long shifts are is often decided by the hospital the doctor works at. There are plenty of other things about a given hospital that also affect the quality of care, like its funding level, how crowded it is, and so on\
+    c.  New policies that reduce shift times may be implemented at the same time (with the timing determined by some unobservable change in policy preferences) as other policies that also attempt to improve the quality of care\
+
+A - we are going to call long shift hours (S), tiredness (T), experience (E), quality of care (Q)\
+B - we are going to call hospital (H), Funding (F), Crowded-ness (C)\
+C - we are going to call policies related to time and quality of care (P) and preferences (PP)\
+
+```{r}
+library(ggdag)
+library(tidyverse)
+
+dag_coords <-
+  tibble(
+    name = c("PP", "H", "P", "S", "T", "E", "C", "F", "Q"),
+    x = c(1, 1, 2, 2, 3, 3, 3, 3, 4),
+    y = c(6, 2, 5, 3, 4, 3, 2, 1, 6 )
+  )
+
+p1 <-
+  dagify(P ~ PP,S ~ P, S ~ H, C ~ H, F ~ H, Q ~ F, Q ~ C, Q ~ T, T ~ S,
+         E ~ S, Q ~ E, Q ~ P,
+    coords = dag_coords
+  ) %>%
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(color = "blue4", alpha = 1 / 4, size = 10) +
+  geom_dag_text(color = "cornflowerblue") +
+  geom_dag_edges(edge_color = "blue4") +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(0.2, 0.2)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(
+    title = "DAG for Question 2")
+
+p1
+```
+
+#### **3. Consider this research question: Does the funding level of public schools affect student achievement for students in your country?**
+
+**a. What is the treatment and what is the outcome of interest?**\
+Treatment: funding level (F)\
+outcome: student achievement (A)\
+**b. Write down a list of relevant variables.**\
+
+    - neighborhood (N)\
+    - school SES composition (C)\
+    - student motivation (M)\
+    - previous test scores (T)\
+    - parental support (S)\
+**c. Which of the variables in your list in part b are causes of both treatment and outcome?**\
+parental support, school SES composition, previous test scores\
+**d. Why might we want to pay extra attention to the variables listed in part c?**\
+these variables can be seen as alternative explanations to the relationship between funding level and student achievement, meaning that that relationship would actually be spurious.\
+**e. Draw a causal diagram of the variables listed in part b.**\
+
+```{r}
+dag_coords2 <-
+  tibble(
+    name = c("N", "S", "C", "F", "T", "A", "M"),
+    x = c(1, 1, 2, 4, 3, 5, 4),
+    y = c(5, 2, 4, 3, 1, 4, 1)
+  )
+
+p2 <-
+  dagify(C ~ N, A ~ C, F ~ S, F ~ T, A ~ T, A ~ M, F ~ C, A ~ F, M ~ T, T ~ S,
+    coords = dag_coords2
+  ) %>%
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(color = "blue4", alpha = 1 / 4, size = 10) +
+  geom_dag_text(color = "cornflowerblue") +
+  geom_dag_edges(edge_color = "blue4") +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(0.2, 0.2)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(
+    title = "DAG for Question 3")
+
+p2
+```
+
+**f. Simplify the diagram from part e.**\
+Composition is a mediator for neighborhood, and for this question let's pretend its not important to communicate the influence of neighborhood itself. So let's remove it.\
+
+```{r}
+dag_coords3 <-
+  tibble(
+    name = c("N", "S", "F", "T", "A", "M"),
+    x = c(1, 1, 2, 3, 5, 4),
+    y = c(5, 2, 3, 1, 4, 1)
+  )
+
+p3 <-
+  dagify(A ~ N, F ~ S, F ~ T, A ~ T, A ~ M, F ~ N, A ~ F, M ~ T, T ~ S,
+    coords = dag_coords3
+  ) %>%
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(color = "blue4", alpha = 1 / 4, size = 10) +
+  geom_dag_text(color = "cornflowerblue") +
+  geom_dag_edges(edge_color = "blue4") +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(0.2, 0.2)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(
+    title = "DAG for Question 3, Simplified")
+
+p3
+```
+
+#### **4. Describe the kinds of situations that each of the following could be applied to in order to simplify a causal diagram.**
+
+    a.  Un-importance: you would get rid of variables that have small effects on the outcome or treatment variable\
+    b.  Redundancy: when variables have the same predictors and outcomes, they can likely be combined.\
+    c.  Mediators: variables that only exist in the DAG at the outcome of another variable and predictor of another through its position as an outcome of the first variable (making it a mediator) can likely be removed and instead just keep the variable that predicts it.\
+    d.  Irrelevance: if the variable is not on any path that goes from the treatment to the outcome variable (backdoor or front door), we can likely remove the variable.\
+
+#### **5. How can a causal diagram be modified so as to avoid cyclic relationships?**
+
+A causal diagram can be modified to avoid cyclic relationships by bringing in a time dimension to the DAG. With time added, the arrows only move in one direction again. Another thing you can do to avoid cyclic relationships is to find a source of random variation and focus on the part of the variable driven by that randomness. If you have this randomness, the effect can't loop back on itself.
+
+#### **6. Think of a research question in your field of interest.**
+
+RQ: Does racial identity moderate the effect between viewing unjust police violence against Black individuals and racial trauma?\
+
+**a. What is the cause variable and what is the outcome variable?**\
+cause: viewing unjust police violence against Black individuals (V)\
+outcome: racial trauma (T)\
+**b. Write down a list of between 5 and 10 relevant variables in the data generating process.**
+
+    1.  racial identity strength (RIS)\
+    2.  experience of racism (E)\
+    3.  social media usage (S)\
+    4.  age (A)
+    5.  race (R)\
+
+**c. Draw a causal diagram incorporating all the variables from part b.**\
+
+```{r}
+
+dag_coords4 <-
+  tibble(
+    name = c("A", "V", "S", "R", "RIS", "E", "T"),
+    x = c(1, 2, 2, 3, 3, 4, 5),
+    y = c(1, 4, 2, 5, 1, 4, 3))
+
+p4 <-
+  dagify(S ~ A, T ~ RIS, V ~ S, V ~ R, E ~ R, T ~ E, T ~ V, V ~ A ,
+    coords = dag_coords4
+  ) %>%
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(color = "blue4", alpha = 1 / 4, size = 10) +
+  geom_dag_text(color = "cornflowerblue") +
+  geom_dag_edges(edge_color = "blue4") +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(0.2, 0.2)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(
+    title = "DAG for Question 6")
+
+p4
+```
+
+**d. Stop working on this problem for fifteen minutes and do something else. Then come back, look at your causal diagram from part c again, and describe one bad assumption you think it made, or something it left out.**\
+
+One thing left out is that racial identity strength could influence the way experience of racism are percieved, it could mediate/moderate (?) the trauma one experiences.\
+
+#### **7. Consider the diagram below. It depicts a cyclical relationship between student achievement and motivation. If students achieve more (i.e., score well on exams), then their motivation goes up, and if their motivation goes up, they achieve more. Change the diagram so that the relationship is not cyclic anymore.**  
+
+Student achievement (A) $\longleftrightarrow$ Motivation (M)
+
+```{r}
+
+dag_coords5 <-
+  tibble(
+    name = c("A_t", "M_t", "M_t1", "A_t1"),
+    x = c(1,1,3,3),
+    y = c(3, 1, 1, 3))
+
+p5<-
+  dagify(M_t1 ~ A_t ,A_t1 ~ M_t,
+    coords = dag_coords5
+  ) %>%
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(color = "blue4", alpha = 1 / 4, size = 15) +
+  geom_dag_text(color = "cornflowerblue") +
+  geom_dag_edges(edge_color = "blue4") +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(0.2, 0.2)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(
+    title = "DAG for Question 7", subtitle = "(please interpret t1 as t +1)")
+
+p5
+```
+
+This chart follows the logic where time allows us to break the cycle by marking each instance as its own variable.
