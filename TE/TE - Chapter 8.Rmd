@@ -1,0 +1,220 @@
+---
+title: "TE - Chapter 8"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-02-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### **1. Assuming that a path has no colliders on it, what is the difference between a path being Open and Closed?**
+
+An open path is when all the variables are allowed to vary. In a closed path, at least one of the variables along the path has no variation.\
+
+#### **2. Consider the below generic causal diagram.**
+
+```{r}
+library(ggdag)
+library(tidyverse)
+
+dag_coords <-
+  tibble(
+    name = c("X", "E", "C", "B", "A", "D", "Y", "F"),
+    x = c(1, 1, 3, 3, 3, 5, 5, 5),
+    y = c(4, 1, 8, 6, 4, 10, 4, -1)
+  )
+
+p1 <-
+  dagify(A ~ E, A ~ X, Y ~ A, Y ~ B, B ~ D, C ~ D, C ~ X, X ~ B,
+         F ~ Y, Y ~ D,
+    coords = dag_coords
+  ) %>%
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(color = "blue4", alpha = 1 / 4, size = 7) +
+  geom_dag_text(color = "cornflowerblue") +
+  geom_dag_edges(edge_color = "blue4") +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(0.2, 0.2)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(
+    title = "DAG for Question 2")
+
+p1
+```
+
+**a.  List every path from X to Y.**\
+          X  -> A -> Y\
+          X -> C <- D -> Y\
+          X -> C <- D -> B -> Y\
+          X <- B <- D -> Y\
+          X <- B -> Y\
+          
+**b.  Which of the paths are front-door paths?**\
+          X -> A -> Y\
+            
+**c.  Which of the paths are open back-door paths?**\
+          X <- B -> Y\
+          X <- B <- D -> Y\
+          
+**d.  What variables must be controlled for in order to identify the effect of X on Y? (only list what must be controlled for, not anything that additionally could be controlled for).**\
+          We must only condition on B to get the total effect of X and Y.\
+
+#### **3. Consider the research question: Does having higher income (I) cause better health (H)?**\
+
+**a.  Draw a causal diagram depicting the data generating process for this relationship with 5-10 variables on it. **\
+      
+        1. occupation (O)
+        2. lifestyle choices (L)
+        3. proximity to grocery stores (P)
+        4. age (A)
+        5. neighborhood (N)
+
+```{r}
+dag_coords2 <-
+  tibble(
+    name = c("I", "H", "G", "L", "P", "A", "N"),
+    x = c(1, 8, 1, 8, 6, 4, 6),
+    y = c(5, 3, -4, 12, -1, 12, -10)
+  )
+
+p2 <-
+  dagify(H ~ I, H ~ L, H ~ A, I ~ A, I ~ G, P ~ I, H ~ P, P ~ N, H ~ G,
+         N ~ I, 
+    coords = dag_coords2
+  ) %>%
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(color = "blue4", alpha = 1 / 4, size = 10) +
+  geom_dag_text(color = "cornflowerblue") +
+  geom_dag_edges(edge_color = "blue4") +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(0.2, 0.2)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(
+    title = "DAG for Question 3")
+
+p2
+```
+
+**b.  Identify the Front Door paths.**\
+      I -> H\
+      I -> P -> H\
+      I -> N -> P -> H\
+      
+**c.  Identify the Back Door paths.** \
+      I <- A -> H\
+      
+**d.  Identify the paths that represent direct effects.** \
+      I -> H\
+      I -> P \
+      I -> N\
+      N -> P\
+      G -> I\
+      G -> H\
+      A -> I\
+      A -> H\
+      P -> H\
+      L -> H\
+      
+**e.  Identify the Good Paths and the Bad Paths.**\
+      **Good:**\
+        I -> H\
+        I -> P -> H\
+        I -> N -> P -> H\
+      **Bad:**\
+      I <- A -> H \
+      
+
+#### **4. Which of the following describes a causal path where all the arrows point away from the treatment?**\
+
+c.  Front Door Path\
+
+#### **5. Consider the figure below, which depicts the relationship between teaching quality, number of publications (e.g., articles, books), and popularity among scholars and students in a population of professors.**\
+
+```{r}
+dag_coords3 <-
+  tibble(
+    name = c("TQ", "NoP", "P"),
+    x = c(1,1,4),
+    y = c(5, -2, 3)
+  )
+
+p3 <-
+  dagify(P ~ NoP, P ~ TQ, 
+    coords = dag_coords3
+  ) %>%
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(color = "blue4", alpha = 1 / 4, size = 12) +
+  geom_dag_text(color = "cornflowerblue") +
+  geom_dag_edges(edge_color = "blue4") +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(0.2, 0.2)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(
+    title = "DAG for Question 5")
+
+p3
+```
+
+**a.  What type of variable is Popularity in one path on this diagram?**\
+          Popularity is a collider.\
+          
+**b.  Discuss what would happen if you controlled for Popularity.**\
+          If we controlled on popularity, the already closed path would become opened, and Teaching Quality and Number of Publications would seem to be related. \
+      
+
+#### **6. Consider the figure below, which depicts the relationship between a pandemic-related lockdown and an economic recession. The research question of interest is: Does a pandemic-related lockdown cause recession?**\
+```{r}
+dag_coords4 <-
+  tibble(
+    name = c("PE", "LD", "S", "UE", "R"),
+    x = c(1, 1, 4, 4, 6),
+    y = c(4, -2,  5, -5, 1)
+  )
+
+p4 <-
+  dagify(LD ~ PE, S ~ PE, R ~ PE, UE ~ PE, R ~ UE, UE ~ LD, UE ~ S, 
+         R ~ S, R ~ LD, 
+    coords = dag_coords4
+  ) %>%
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(color = "blue4", alpha = 1 / 4, size = 10) +
+  geom_dag_text(color = "cornflowerblue") +
+  geom_dag_edges(edge_color = "blue4") +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(0.2, 0.2)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(
+    title = "DAG for Question 6")
+
+p4
+```
+
+**a.  Write down all the paths in the diagram from Lockdown to Recession. To make our lives simpler (there are a lot of paths in this diagram), ignore any path that goes through Stimulus.** \
+         L -> R\
+         L <- PE -> R\
+         L <- PE -> UE -> R\
+         L -> UE -> R\
+         L -> UE <- PE -> R\
+         
+**b.  List all of the paths that are Front Door Paths. **\
+         L -> P\
+         L -> U -> R\
+         
+**c.  What would happen if we controlled for unemployment?** \
+         Controlling unemployment would open the path L -> UE <- PE -> R. \
+         
+**d.  Is it possible to measure each of the variables adequately?**\
+        I think finding indicators for lockdown would be difficult, maybe you could use the state's laws on quarentining. Indicators for recession would also be interesting to find, specifically because it seems like that is usually meaasured by unemployment which is its own variable.\
+        
+**e.  Can you think of any variables and paths not depicted in the diagram that may be relevant to identify the answer to the research question? List at least one and no more than three.**\
+        severity of pandemic would influence lockdown and unemployment\
+        
+
+#### **7. Consider the question: Does obtaining a higher education improve income? Think of a couple of examples of Bad Paths in a causal diagram depicting the data generating process for this research question.**
