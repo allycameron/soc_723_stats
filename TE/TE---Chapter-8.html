@@ -355,16 +355,17 @@ display: none;
 </div>
 
 
-<div id="assuming-that-a-path-has-no-colliders-on-it-what-is-the-difference-between-a-path-being-open-and-closed" class="section level4">
-<h4><strong>1. Assuming that a path has no colliders on it, what is the
-difference between a path being Open and Closed?</strong></h4>
+<blockquote>
+<p><strong>1. Assuming that a path has no colliders on it, what is the
+difference between a path being Open and Closed?</strong></p>
+</blockquote>
 <p>An open path is when all the variables are allowed to vary. In a
 closed path, at least one of the variables along the path has no
 variation.<br />
 </p>
-</div>
-<div id="consider-the-below-generic-causal-diagram." class="section level4">
-<h4><strong>2. Consider the below generic causal diagram.</strong></h4>
+<blockquote>
+<p><strong>2. Consider the below generic causal diagram.</strong></p>
+</blockquote>
 <pre class="r"><code>library(ggdag)</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;ggdag&#39;</code></pre>
@@ -427,11 +428,11 @@ the effect of X on Y? (only list what must be controlled for, not
 anything that additionally could be controlled for).</strong><br />
 We must only condition on B to get the total effect of X and Y.<br />
 </p>
-</div>
-<div id="consider-the-research-question-does-having-higher-income-i-cause-better-health-h" class="section level4">
-<h4><strong>3. Consider the research question: Does having higher income
+<blockquote>
+<p><strong>3. Consider the research question: Does having higher income
 (I) cause better health (H)?</strong><br />
-</h4>
+</p>
+</blockquote>
 <p><strong>a. Draw a causal diagram depicting the data generating
 process for this relationship with 5-10 variables on it. </strong><br />
 </p>
@@ -495,22 +496,22 @@ I -&gt; N -&gt; P -&gt; H<br />
 <strong>Bad:</strong><br />
 I &lt;- A -&gt; H<br />
 I &lt;- G -&gt; H </p>
-</div>
-<div id="which-of-the-following-describes-a-causal-path-where-all-the-arrows-point-away-from-the-treatment" class="section level4">
-<h4><strong>4. Which of the following describes a causal path where all
+<blockquote>
+<p><strong>4. Which of the following describes a causal path where all
 the arrows point away from the treatment?</strong><br />
-</h4>
+</p>
+</blockquote>
 <ol start="3" style="list-style-type: lower-alpha">
 <li>Front Door Path<br />
 </li>
 </ol>
-</div>
-<div id="consider-the-figure-below-which-depicts-the-relationship-between-teaching-quality-number-of-publications-e.g.-articles-books-and-popularity-among-scholars-and-students-in-a-population-of-professors." class="section level4">
-<h4><strong>5. Consider the figure below, which depicts the relationship
+<blockquote>
+<p><strong>5. Consider the figure below, which depicts the relationship
 between teaching quality, number of publications (e.g., articles,
 books), and popularity among scholars and students in a population of
 professors.</strong><br />
-</h4>
+</p>
+</blockquote>
 <pre class="r"><code>dag_coords3 &lt;-
   tibble(
     name = c(&quot;TQ&quot;, &quot;NoP&quot;, &quot;P&quot;),
@@ -545,13 +546,13 @@ If we controlled on popularity, the already closed path would become
 opened, and Teaching Quality and Number of Publications would seem to be
 related.<br />
 </p>
-</div>
-<div id="consider-the-figure-below-which-depicts-the-relationship-between-a-pandemic-related-lockdown-and-an-economic-recession.-the-research-question-of-interest-is-does-a-pandemic-related-lockdown-cause-recession" class="section level4">
-<h4><strong>6. Consider the figure below, which depicts the relationship
+<blockquote>
+<p><strong>6. Consider the figure below, which depicts the relationship
 between a pandemic-related lockdown and an economic recession. The
 research question of interest is: Does a pandemic-related lockdown cause
 recession?</strong><br />
-</h4>
+</p>
+</blockquote>
 <pre class="r"><code>dag_coords4 &lt;-
   tibble(
     name = c(&quot;PE&quot;, &quot;LD&quot;, &quot;S&quot;, &quot;UE&quot;, &quot;R&quot;),
@@ -611,12 +612,12 @@ question? List at least one and no more than three.</strong><br />
 Severity of pandemic (meaning how much it spread, amount of cases, etc.)
 would influence lockdown and unemployment<br />
 </p>
-</div>
-<div id="consider-the-question-does-obtaining-a-higher-education-e-improve-income-i-think-of-a-couple-of-examples-of-bad-paths-in-a-causal-diagram-depicting-the-data-generating-process-for-this-research-question." class="section level4">
-<h4><strong>7. Consider the question: Does obtaining a higher education
+<blockquote>
+<p><strong>7. Consider the question: Does obtaining a higher education
 (E) improve income (I)? Think of a couple of examples of Bad Paths in a
 causal diagram depicting the data generating process for this research
-question.</strong></h4>
+question.</strong></p>
+</blockquote>
 <pre><code>Variables:
   - gender (G) and race (R) combined to = stuednt demographics (D)
   - family background (B)
@@ -663,7 +664,6 @@ p5</code></pre>
   HS &lt;- S &lt;- B -&gt; E -&gt; I
   
   </code></pre>
-</div>
 
 
 

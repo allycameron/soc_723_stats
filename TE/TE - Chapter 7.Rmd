@@ -8,20 +8,20 @@ date: "2023-02-14"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#### **1. You are making a simplified causal diagram to represent the data generating process of viewership for a TV show. Which of the following is true?**
+> **1. You are making a simplified causal diagram to represent the data generating process of viewership for a TV show. Which of the following is true?**
 
 a.  T - number of celebrities in the case could influence viewership\
 b.  F - instead of two separate variables, "time of tv show" would be a better node\
 c.  F - just because you can't measure it doesn't mean it shouldn't be included. budget could influence quality which could influence viewership.\
 d.  F - this variable does not have a large enough effect on overall viewership\
 
-#### **2. Draw a causal diagram for the research question "do long shift hours make doctors give lower-quality care?" that incorporates the following features (and only the following features):**
+> **2. Draw a causal diagram for the research question "do long shift hours make doctors give lower-quality care?" that incorporates the following features (and only the following features):**
 
 **a. Long shift hours (S) affect both how tired doctors are, (T) and how much experience they have, (e) both of which affect the quality of care (Q)**.\
 
-**b.  How long shifts are is often decided by the hospital the doctor works at (H). There are plenty of other things about a given hospital that also affect the quality of care, like its funding level (F), how crowded it is (C), and so on.**\
+**b. How long shifts are is often decided by the hospital the doctor works at (H). There are plenty of other things about a given hospital that also affect the quality of care, like its funding level (F), how crowded it is (C), and so on.**\
 
-**c.  New policies (P) that reduce shift times may be implemented at the same time (with the timing determined by some unobservable change in policy preferences (PP)) as other policies (P) that also attempt to improve the quality of care.**\
+**c. New policies (P) that reduce shift times may be implemented at the same time (with the timing determined by some unobservable change in policy preferences (PP)) as other policies (P) that also attempt to improve the quality of care.**\
 
 ```{r}
 library(ggdag)
@@ -53,7 +53,7 @@ p1 <-
 p1
 ```
 
-#### **3. Consider this research question: Does the funding level of public schools affect student achievement for students in your country?**
+> **3. Consider this research question: Does the funding level of public schools affect student achievement for students in your country?**
 
 **a. What is the treatment and what is the outcome of interest?**\
 Treatment: funding level (F)\
@@ -65,7 +65,7 @@ Outcome: student achievement (A)\
     - student motivation (M)
     - previous test scores (T)
     - parental support (S)
-    
+
 **c. Which of the variables in your list in part b are causes of both treatment and outcome?**\
 Variables that are causes of both treatment and outcome are: parental support, school SES composition, and previous test scores.\
 
@@ -129,7 +129,7 @@ p3 <-
 p3
 ```
 
-#### **4. Describe the kinds of situations that each of the following could be applied to in order to simplify a causal diagram.**
+> **4. Describe the kinds of situations that each of the following could be applied to in order to simplify a causal diagram.**
 
 a.  Un-importance: you would get rid of variables that have small effects on the outcome or treatment variable\
 
@@ -139,11 +139,11 @@ c.  Mediators: variables that only exist in the DAG at the outcome of another va
 
 d.  Irrelevance: if the variable is not on any path that goes from the treatment to the outcome variable (backdoor or front door), we can likely remove the variable.\
 
-#### **5. How can a causal diagram be modified so as to avoid cyclic relationships?**
+> **5. How can a causal diagram be modified so as to avoid cyclic relationships?**
 
 A causal diagram can be modified to avoid cyclic relationships by bringing in a time dimension to the DAG. With time added, the arrows only move in one direction again. Another thing you can do to avoid cyclic relationships is to find a source of random variation and focus on the part of the variable driven by that randomness. If you have this randomness, the effect can't loop back on itself.
 
-#### **6. Think of a research question in your field of interest.**
+> **6. Think of a research question in your field of interest.**
 
 RQ: Does racial identity moderate the effect between viewing unjust police violence in the media against Black individuals and racial trauma?\
 
@@ -190,7 +190,7 @@ p4
 
 One thing left out is that racial identity strength could influence the way experiences of racism are perceived (maybe the strength of impact specifically?), it could mediate/moderate (?) the trauma one experiences.\
 
-#### **7. Consider the diagram below. It depicts a cyclical relationship between student achievement and motivation. If students achieve more (i.e., score well on exams), then their motivation goes up, and if their motivation goes up, they achieve more. Change the diagram so that the relationship is not cyclic anymore.** 
+> **7. Consider the diagram below. It depicts a cyclical relationship between student achievement and motivation. If students achieve more (i.e., score well on exams), then their motivation goes up, and if their motivation goes up, they achieve more. Change the diagram so that the relationship is not cyclic anymore.**
 
 Student achievement (A) $\longleftrightarrow$ Motivation (M)
 

@@ -10,11 +10,11 @@ date: "2023-02-14"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#### **1. Assuming that a path has no colliders on it, what is the difference between a path being Open and Closed?**
+> **1. Assuming that a path has no colliders on it, what is the difference between a path being Open and Closed?**
 
 An open path is when all the variables are allowed to vary. In a closed path, at least one of the variables along the path has no variation.\
 
-#### **2. Consider the below generic causal diagram.**
+> **2. Consider the below generic causal diagram.**
 
 ```{r}
 library(ggdag)
@@ -63,7 +63,7 @@ p1
 **d.  What variables must be controlled for in order to identify the effect of X on Y? (only list what must be controlled for, not anything that additionally could be controlled for).**\
           We must only condition on B to get the total effect of X and Y.\
 
-#### **3. Consider the research question: Does having higher income (I) cause better health (H)?**\
+> **3. Consider the research question: Does having higher income (I) cause better health (H)?**\
 
 **a.  Draw a causal diagram depicting the data generating process for this relationship with 5-10 variables on it. **\
       
@@ -131,11 +131,11 @@ p2
       I <- G -> H\ 
       
 
-#### **4. Which of the following describes a causal path where all the arrows point away from the treatment?**\
+> **4. Which of the following describes a causal path where all the arrows point away from the treatment?**\
 
 c.  Front Door Path\
 
-#### **5. Consider the figure below, which depicts the relationship between teaching quality, number of publications (e.g., articles, books), and popularity among scholars and students in a population of professors.**\
+> **5. Consider the figure below, which depicts the relationship between teaching quality, number of publications (e.g., articles, books), and popularity among scholars and students in a population of professors.**\
 
 ```{r}
 dag_coords3 <-
@@ -170,7 +170,7 @@ p3
           If we controlled on popularity, the already closed path would become opened, and Teaching Quality and Number of Publications would seem to be related. \
       
 
-#### **6. Consider the figure below, which depicts the relationship between a pandemic-related lockdown and an economic recession. The research question of interest is: Does a pandemic-related lockdown cause recession?**\
+> **6. Consider the figure below, which depicts the relationship between a pandemic-related lockdown and an economic recession. The research question of interest is: Does a pandemic-related lockdown cause recession?**\
 ```{r}
 dag_coords4 <-
   tibble(
@@ -220,7 +220,7 @@ p4
         Severity of pandemic (meaning how much it spread, amount of cases, etc.) would influence lockdown and unemployment\
         
 
-#### **7. Consider the question: Does obtaining a higher education (E) improve income (I)? Think of a couple of examples of Bad Paths in a causal diagram depicting the data generating process for this research question.**
+> **7. Consider the question: Does obtaining a higher education (E) improve income (I)? Think of a couple of examples of Bad Paths in a causal diagram depicting the data generating process for this research question.**
 
     Variables:
       - gender (G) and race (R) combined to = stuednt demographics (D)
