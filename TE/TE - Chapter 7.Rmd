@@ -145,7 +145,7 @@ A causal diagram can be modified to avoid cyclic relationships by bringing in a 
 
 #### **6. Think of a research question in your field of interest.**
 
-RQ: Does racial identity moderate the effect between viewing unjust police violence against Black individuals and racial trauma?\
+RQ: Does racial identity moderate the effect between viewing unjust police violence in the media against Black individuals and racial trauma?\
 
 **a. What is the cause variable and what is the outcome variable?**\
 cause: viewing unjust police violence against Black individuals (V)\
