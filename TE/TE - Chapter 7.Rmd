@@ -15,12 +15,9 @@ b.  F - instead of two separate variables, "time of tv show" would be a better n
 c.  F - just because you can't measure it doesn't mean it shouldn't be included. budget could influence quality which could influence viewership.\
 d.  F - this variable does not have a large enough effect on overall viewership\
 
-> **2. Draw a causal diagram for the research question "do long shift hours make doctors give lower-quality care?" that incorporates the following features (and only the following features):**
-
-**a. Long shift hours (S) affect both how tired doctors are, (T) and how much experience they have, (e) both of which affect the quality of care (Q)**.\
-
+> **2. Draw a causal diagram for the research question "do long shift hours make doctors give lower-quality care?" that incorporates the following features (and only the following features):**\
+**a. Long shift hours (S) affect both how tired doctors are, (T) and how much experience they have, (e) both of which affect the quality of care (Q)**\
 **b. How long shifts are is often decided by the hospital the doctor works at (H). There are plenty of other things about a given hospital that also affect the quality of care, like its funding level (F), how crowded it is (C), and so on.**\
-
 **c. New policies (P) that reduce shift times may be implemented at the same time (with the timing determined by some unobservable change in policy preferences (PP)) as other policies (P) that also attempt to improve the quality of care.**\
 
 ```{r}
