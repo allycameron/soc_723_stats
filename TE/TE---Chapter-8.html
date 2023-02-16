@@ -434,7 +434,7 @@ We must only condition on B to get the total effect of X and Y.<br />
 </p>
 </blockquote>
 <p><strong>a. Draw a causal diagram depicting the data generating
-process for this relationship with 5-10 variables on it. </strong><br />
+process for this relationship with 5-10 variables on it.</strong><br />
 </p>
 <pre><code>    1. occupation (O)
     2. lifestyle choices (L)
@@ -495,7 +495,8 @@ I -&gt; P -&gt; H<br />
 I -&gt; N -&gt; P -&gt; H<br />
 <strong>Bad:</strong><br />
 I &lt;- A -&gt; H<br />
-I &lt;- G -&gt; H </p>
+I &lt;- G -&gt; H<br />
+</p>
 <blockquote>
 <p><strong>4. Which of the following describes a causal path where all
 the arrows point away from the treatment?</strong><br />
@@ -588,8 +589,8 @@ LD -&gt; UE -&gt; R<br />
 LD -&gt; UE &lt;- PE -&gt; R<br />
 LD -&gt; UE &lt;- PE -&gt; LD -&gt; R<br />
 </p>
-<p><strong>b. List all of the paths that are Front Door Paths.
-</strong><br />
+<p><strong>b. List all of the paths that are Front Door
+Paths.</strong><br />
 LD -&gt; R<br />
 LD -&gt; UE -&gt; R<br />
 </p>
@@ -618,12 +619,11 @@ would influence lockdown and unemployment<br />
 causal diagram depicting the data generating process for this research
 question.</strong></p>
 </blockquote>
-<pre><code>Variables:
-  - gender (G) and race (R) combined to = stuednt demographics (D)
-  - family background (B)
-  - high school grades (HS)
-  - parental support (S)
-  
+<pre><code>  Variables:\
+  - gender (G) and race (R) combined to = student demographics (D)\
+  - family background (B)\
+  - high school grades (HS)\
+  - parental support (S)\
   </code></pre>
 <pre class="r"><code>dag_coords5 &lt;-
   tibble(
