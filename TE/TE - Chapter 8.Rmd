@@ -52,7 +52,7 @@ p1
           X -> C <- D -> B -> Y\
           X <- B <- D -> Y\
           X <- B -> Y\
-          
+          X -> C <- D -> B -> X -> A -> Y\
 **b.  Which of the paths are front-door paths?**\
           X -> A -> Y\
             
@@ -107,6 +107,7 @@ p2
       
 **c.  Identify the Back Door paths.** \
       I <- A -> H\
+      I <- G -> H\
       
 **d.  Identify the paths that represent direct effects.** \
       I -> H\
@@ -127,6 +128,7 @@ p2
         I -> N -> P -> H\
       **Bad:**\
       I <- A -> H \
+      I <- G -> H\ 
       
 
 #### **4. Which of the following describes a causal path where all the arrows point away from the treatment?**\
@@ -197,24 +199,74 @@ p4
 ```
 
 **a.  Write down all the paths in the diagram from Lockdown to Recession. To make our lives simpler (there are a lot of paths in this diagram), ignore any path that goes through Stimulus.** \
-         L -> R\
-         L <- PE -> R\
-         L <- PE -> UE -> R\
-         L -> UE -> R\
-         L -> UE <- PE -> R\
+         LD -> R\
+         LD <- PE -> R\
+         LD <- PE -> UE -> R\
+         LD -> UE -> R\
+         LD -> UE <- PE -> R\
+         LD -> UE <- PE -> LD -> R\
          
 **b.  List all of the paths that are Front Door Paths. **\
-         L -> P\
-         L -> U -> R\
+         LD -> R\
+         LD -> UE -> R\
          
 **c.  What would happen if we controlled for unemployment?** \
-         Controlling unemployment would open the path L -> UE <- PE -> R. \
+         Controlling unemployment would open the path LD -> UE <- PE -> R, because there it is a collider. \
          
 **d.  Is it possible to measure each of the variables adequately?**\
-        I think finding indicators for lockdown would be difficult, maybe you could use the state's laws on quarentining. Indicators for recession would also be interesting to find, specifically because it seems like that is usually meaasured by unemployment which is its own variable.\
+        I think finding indicators for lockdown would be difficult, maybe you could use the state's laws on quarantining. Indicators for recession would also be interesting to find, specifically because it seems like that is usually measured by unemployment which is its own variable.\
         
 **e.  Can you think of any variables and paths not depicted in the diagram that may be relevant to identify the answer to the research question? List at least one and no more than three.**\
-        severity of pandemic would influence lockdown and unemployment\
+        Severity of pandemic (meaning how much it spread, amount of cases, etc.) would influence lockdown and unemployment\
         
 
-#### **7. Consider the question: Does obtaining a higher education improve income? Think of a couple of examples of Bad Paths in a causal diagram depicting the data generating process for this research question.**
+#### **7. Consider the question: Does obtaining a higher education (E) improve income (I)? Think of a couple of examples of Bad Paths in a causal diagram depicting the data generating process for this research question.**
+
+    Variables:
+      - gender (G) and race (R) combined to = stuednt demographics (D)
+      - family background (B)
+      - high school grades (HS)
+      - parental support (S)
+      
+      
+```{r}
+dag_coords5 <-
+  tibble(
+    name = c("E", "D", "B", "HS", "S", "I"),
+    x = c(4, 4, 4, 1, 4, 6),
+    y = c(3, 9, -3, 3, -9, 3), 
+  )
+
+p5 <-
+  dagify(E ~ HS, HS ~ S, HS ~ D, E ~ D, I ~ D, E ~ B, S ~ B, I ~ B, I ~ E,
+    coords = dag_coords5
+  ) %>%
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_dag_point(color = "blue4", alpha = 1 / 4, size = 10) +
+  geom_dag_text(color = "cornflowerblue") +
+  geom_dag_edges(edge_color = "blue4") +
+  scale_x_continuous(NULL, breaks = NULL, expand = c(0.1, 0.1)) +
+  scale_y_continuous(NULL, breaks = NULL, expand = c(0.2, 0.2)) +
+  theme_bw() +
+  theme(panel.grid = element_blank()) +
+  labs(
+    title = "DAG for Question 7")
+
+p5
+```
+      
+      Backdoor paths:
+      HS <- D -> E <- B -> I
+      HS <- D -> I
+      HS <- D -> E -> I
+      HS <- S <- B -> E <- D -> I
+      HS <- S <- B -> I
+      HS <- S <- B -> E -> I 
+      
+      Bad paths:
+      HS <- D -> I
+      HS <- D -> E -> I
+      HS <- S <- B -> I
+      HS <- S <- B -> E -> I
+      
+      
