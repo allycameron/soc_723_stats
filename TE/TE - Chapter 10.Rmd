@@ -1,0 +1,97 @@
+---
+title: "TE - Chapter 10"
+output: html_document
+date: "2023-02-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+> 1.  Define in your own words (i.e., don't just copy down what's written in the glossary) each of the following terms:\
+
+**a.  Conditional average treatment effect:** the difference between the average observed values of the outcome of the untreated and treated groups, related only to a specific value of variable (trying not to use the word "conditional" in the definition... but conditional on a value of a specific variable)\
+**b.  Average treatment on the treated:** the difference between the average observed values of the untreated and treated groups, but only for the people who actually received treatment.\
+**c.  Average treatment on the untreated:** the difference between the average observed values of the untreated and treated groups, but only for the people who did not receive treatment.\
+
+> 2.  Provide an example of a treatment effect that you would expect to be highly heterogeneous, and explain why you think it is likely to be heterogeneous\
+
+The influence of a graduate degree on life outcome. I think the payoff of a graduate degree will differ across the students who receive a graduate degree, specifically I am thinking in the context of race and gender.\
+
+> 3.  Consider the data in the table below that shows the hypothetical treatment effect of cognitive behavioral therapy on depression for six participants. For the sake of this example, the six participants represent the population of interest.\
+
+Case | Age | Gender	    | Effect
+---- | --- | ---------- | ------
+A    | 15  | Man        |	7
+B    | 40  | Woman	    | 3
+C    | 30	 | Woman    	| 7
+D    | 20	 | Non-binary |	8
+E    | 15	 | Man	      | 7
+F    | 25	 | Woman	    | 4
+
+**a.  What is the overall average treatment effect for the population?**\
+```{r}
+(3 + 7 + 4 + 7 + 8 + 7) / 6
+```
+ 
+ The average treatment effect for the population is 6.\
+ 
+**b.  What is the average treatment effect for Women?**\
+```{r}
+(3 + 7 + 4) / 3
+```
+
+The average treatment effect for women is 4.67.\
+
+**c.  If nearly all Non-binary people get treated, and about half of all Women get treated, and we control for the differences between Women and Non-binary people, what kind of treatment effect average will we get, and what can we say about the numerical estimate we'll get?**\
+
+With this information (weight/strength of each group), I know that we will have to find the weighted averages. So we would get some kind of weighted average treatment effect. The estimate we get from this calculation will give us the differences between the two groups. \
+
+**d.  If we assume that, in the absence of treatment, everyone would have had the same outcome, and also only teenagers (19 or younger) ever receive treatment, and we compare treated people to control people, what kind of treatment effect average will we get, and what can we say about the numerical estimate we'll get?**\
+
+Since we only have people of a certain age, but are still calculating the treatment effect, we would get a conditional average treatment effect. We would end up with the average treatment effect fof teenagers (<19 years old).\
+
+> 4.  Give an example where the average treatment effect on the treated would be more useful to consider than the overall average treatment effect, and explain why\
+
+The average treatment effect on the treated would be more useful to consider most commonly in medical trials. This is because they are only interested in the causal effect of the drugs for patients that recevie or would receive the drugs, not those who do not receive the drug or would not.\
+
+> 5.  Which of the following describes the average treatment effect of assigning treatment, whether or not treatment is actually received?\
+
+c.  Intent-to-treat\
+
+
+> 6.  On weighted treatment effects:\
+
+**a.  Describe what a variance-weighted treatment effect is:**
+this is the difference between the treated and and untreated but each individual's treatment effect is weighted in relation to the amount of variation there is in their treatment variable.\
+
+**b.  Describe what a distribution-weighted treatment effect is:** where individuals with really common values of the variables we match on are weighted more heavily.\
+
+**c.  Under what conditions/research designs would we get each of these?**\
+
+distribution-weighted: when we select a sample (After closing back door paths) where the treated and untreated groups have similar values of variables on the back door paths\
+
+variance-weighted: if some kinds of people ahve a lot of variation while others don't and all back door paths are closed.\
+
+
+> 7.  Suppose you are conducting an experiment to see whether pricing cookies at \$1.99 versus \$2 affects the decision to purchase the cookies. The population of interest is all adults in the United States. You recruit people from your university to participate and randomize them to either see cookies priced as \$1.99 or \$2, then write down whether they purchased cookies. What kind of average treatment effect can you identify from this experiment?\
+
+Since our population we would want to generalize is not represented within our sample, we would only be able to calculate a conditional average treatment effect, conditional on university students at that school.\
+
+>8.  For each of the following identification strategies, what kind of treatment effect(s) is most likely to be identified?\
+
+**a.  A randomized experiment using a representative sample**\
+Average Treatment Effect\
+
+**b.  True randomization within only a certain demographic group**\
+Conditional Average Treatment Effect\
+
+**c.  Closing back door paths connected to variation in treatment**
+Variance-Weighted  Treatment Effect\
+
+**d.  Isolating the part of the variation in treatment variable that is driven by an exogenous variable**\
+
+Local Average Treatment Effect\
+
+**e.  The control group is comparable to the treatment group, but treatment effects may be different across these groups**\
+Average Treatment Effects on the Treated/Untreated\
