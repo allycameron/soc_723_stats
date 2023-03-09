@@ -1,0 +1,314 @@
+---
+title: "matching and weighting"
+output: html_document
+date: "2023-03-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# HEY! MATCHING IS WEIGHTING\
+
+First, there are two packages that we need.\
+
+```{r}
+install.packages("MatchIt")
+install.packages("WeightIt")
+```
+basic way to use `matchit`: match_object <- matchit(formula, data = df, method = method)\
+
+Here is an example, we don't have the data but let's pretend... matching on 3 different variables, for both smoking (T) and non-smoking (C)\
+```{r}
+# matching on three dummy variables
+ematch_out <- matchit(mbsmoke ~ mmarried + alcohol + mrace, 
+                      data = d,
+                      method = "exact")
+
+# confirm all are matched 
+ematch_out
+```
+
+NOTE: ATT is the target estimand\
+
+WHAT THE OUTPUT WILL HELP US UNDERSTAND: how much more will the babies weigh if their mothers didn't smoke?\
+
+the output is the number of people who are now avaiable after matching. \
+
+```{r}
+# get the matched data
+ematch_data <- match.data(ematch_out)
+# look at the data
+glimpse(ematch_data)
+```
+
+You will see two new variables.\
+(1) subclasses = bins for each paring possibilities of white/non-white, married/unmarried, uses/doesn't use alcohol\
+
+EXAMPLES:\
+1 = doesn't use alcohol, white, married\
+2 = doesn't use alcohol, non-white, unmarried\
+
+(2) weights = help us close the backdoor of individual characteristics that seem consistent with the independent variable (close backdoor between S and T)\
+
+* we weight on the subclass, not the individual\
+
+add in weights from ematch_data:\
+
+```{r}
+m_att <- lm(zweight ~ mbsmoke, data = ematch_data, weights = weights)
+
+tidy(m_att)
+```
+What will be returned is our normal estimates and things after matching and weighting. Effectively, once backdoors are closed. \
+
+
+
+# PROPENSITY SCORES MATCHING - we won't really use these\
+
+1) run regular logistic regression\
+```{r}
+psmod <- glm(mbsmoke ~ mmarried + alcohol + mrace + fbaby + mage + I(mage^2) + medu + mprenatal, 
+             data = d, 
+             family = binomial)
+
+tidy(psmod)
+```
+
+
+Covariate balance:\
+propensity scores can be used to balance the treatment and control groups overall in two primary ways:\
+     - matching (e.g., matching treated cases to controls with same or very similar p-scores)\
+     - weighting (e.g., applying inverse probability of treatment weights to the control cases to make their distribution look like the treatment group)\
+
+2) see if the propensity scores are BALANCED\
+If it balancing out then we're okay, but if there is a systematic way propensity scores are being balanced then we have an issue.\
+
+
+HOW TO DO IN CODE\
+
+EXAMPLE:\
+- matching on log-odds of treatment\
+- no discarding for lack of common support\
+- no caliper\
+- no replacement\
+- 1-to-1 matching\
+- no exact matching\
+
+1) SET UP THE MATCHING\
+```{r}
+
+# here are some ways to make test so you don't have to keep writing
+
+# make a list with all variables, without quadratics
+trt_form1 <- "mbsmoke ~ mmarried + mrace + alcohol + fbaby + mage + medu + 
+nprenatal"
+
+# propensity score model version
+trt_form2 <-  "mbsmoke ~ mmarried + mrace + alcohol + fbaby + mage + medu + 
+nprenatal + I(mage^2) + I(medu^2)) + I(nprenatal^2)"
+```
+
+NOTEP: we will not interpret betas with the glm here... using for matching\
+
+```{r}
+m_out <- matchit(as.formula(trt_form2), 
+                 data = d,
+                 distance = "glm", 
+                 link = "linear.logit", # use log odds
+                 m.order = "largest", # order matters here bc we are doing 1:1
+                 replace = FALSE)
+```
+
+
+2) CHECK COVARIATE BALANCE: check standardized bias\
+- are the two groups matched different from each other? *see notes in journal on how to do this on page titled "3 options to use PS"\
+
+```{r}
+install.packages("cobalt")
+```
+
+we have three plots we could use:\
+ - `bal.tab` (balance tables)\
+ - `bal.plot` (to compare single covariate distributions)\
+ - `love.plot` (graphical balance checking; same info as `bal.tab` in graph form)\
+ 
+```{r}
+# for a love plot, may want to use this function
+love_plot <- function (x) {
+  love.plot(x,
+            binary = "std", # use same formula for binary vars
+            continuous = "std", # standardize cont. variables
+            abs = TRUE, # absolute value
+            stats = c( "m", "ks") , # std. bias and Kolmogorov-Smirnov (more conservative)
+            s.d.denom = "treat" , # use for ATT
+            line = TRUE , # connect with lines, shouldn't do for publications
+            var.order = "adj", # sort by adjusted order
+            thresholds = c(.10, .05)) # rules of thumb
+  }
+
+# run function on your matching stuff, gives good graph for seeing balance
+love_plot(m_out)
+```
+ 
+What you want to see is that all the blue lines/points are below the dotted line... if they are past the dotted line we have not achieved balance. We have not closed the back door when the points are past the dotted line. \
+  
+  Examining individual variables with issues using `bal.plot`:\
+```{r}
+bal.plot(m_out, "alcohol")
+```
+
+OR \
+```{r}
+bal.plot(m_out, var.name = "medu", type = "ecdf") # cumulative dist. function
+```
+  
+for this kind of graph...anytime the numbers separate = bad (120/208)\
+
+
+what can we do to achieve balance?\
+  1. lack of common support -> we can drop people... discard treatment cases above max control propensity\
+  2. poorly specified PS model (PSM)....\
+      a. add interaction terms in PSM\
+      b. add higher-order polynomials in PSM\
+      c. **generally better to overfit since model is not really a model, but a meaasre of similarity**
+  3. inliers.... those who aren't outside the max... BUT there aren't any common matches\
+      a. use calipers (thus feasible estimates) - maximum distance beyond which matches are not allowed, typical cliper disntance is .10\
+          i. discarding treatment cases without high-quality matches\
+      b. use matching with replacement (not forcing as many bad matches)\
+      
+DOING OPTION 3B:\
+```{r}
+m_out2 <- matchit(as.formula(trt_form2), 
+                 data = d,
+                 distance = "glm", 
+                 link = "linear.logit", # use log odds
+                 m.order = "largest", # order matters here bc we are doing 1:1
+                 replace = TRUE)
+
+# visualizing
+plot(m_out2, type = "jitter", interactive = FALSE)
+
+# visualizing balance, using function
+love_plot(m_out2)
+```
+
+DOING OPTOIN 3A (likely to lose treated cases):\
+```{r}
+m_cal <- matchit(as.formula(trt_form2), 
+                 data = d, 
+                 distance = "glm", 
+                 link = "linear.logit", 
+                 caliper = .1 , 
+                 replace = FALSE)
+summary(m_cal)[[2]]
+
+# visualize what happened (case selection)
+plot(m_cal, type = "jitter", interactive = FALSE)
+```
+
+
+how do we get matched data in a dataframe?\
+```{r}
+m_data <- match.data(m_out)
+nrow(m_data) # how many cases do we have now
+
+
+# then you use this data to run regression
+lm(zweight ~ mbsmoke, data = m_data) %>%  tidy()
+
+#OR
+
+# this is when it is with replacement, so need weights... 
+# but remember this is more balanced
+
+m_data2 <- match.data(m_out2)
+
+lm(zweight ~ mbsmoke, data = m_data2, weights = weights)
+```
+
+NOTE: the ATT estimate is the estimate of `mbsmoke`.\
+
+# PROPENSITY SCORE WEIGHTING\
+
+- don't worry about matching, use weights based on each case's propensity score directly \
+
+```{r}
+W1 <- weighit(as.formula(trt_form2), 
+               data = d, 
+               method = "ps", 
+               s.weights = NULL,
+               estimand = "ATT")
+```
+
+THINGS TO KNOW ABOUT OUTPUT:
+  - Output will show us the weight ranges. \
+  - Biggest weight given to those who are control but look like treatment. \
+  - lower the entropy the lower the standard error will be. \
+  - ESS... the power the control cases have... not literal but shows their power\
+  
+  check balance again
+```{r}
+# look back at the function created called love_plot
+love_plot(W1)
+```
+
+OVERLAPPING DENSITY PLOTS ARE THE BEST.
+
+HOW DO WE RUN THE MODEL?
+
+NOTE: now we don't have to create weighted dataframe.\
+
+```{r}
+lm(zweight ~ mbsmoke, data = d, weights = W1$weights) %>%  tidy()
+```
+
+**AGAIN, ATT estimate is the estimate of `mbsmoke`.**\
+
+# the best way to do all this: covariate balancing propensity scores (doesn't go over this much though: starts at 156)\
+
+- estiamtes propensity scores, but targeting balance itself\
+
+```{r}
+install.packages("CBPS")
+```
+
+how to use:
+```{r}
+
+# how to use in weights
+CB1 <- weighit(as.formula(trt_form2), 
+               data = d, 
+               method = "CBPS", 
+               over = TRUE,
+               estimand = "ATT")
+
+# visualizing balance
+
+love_plot(CB1)
+
+# getting ATT
+lm(zweight ~ mbsmoke, data = d, weights = CB1$weights ) %>% tidy()
+```
+
+
+# another one you can use: entropy balncing (he doesn't use this often)\
+
+IDEA: what if there was a single weight that could be applied to the control cases that will balance all the covariates?
+```{r}
+# package needed
+install.packages("ebal")
+# how to use
+eb.out <- weightit(as.formula(trt_form1), 
+                   data = d, 
+                   method = "ebal", moments = 3,
+                   estimand = "ATT")
+
+# getting ATT
+lm(zweight ~ mbsmoke ,
+data = d ,
+weights = eb.out$weights ) %>% tidy()
+```
+MATCHING EXACTLY ON SKEWNESS, MEAN, AND VARIANCE
+
+you would then run a regular regression (add the addition and the interaction terms), and still only look at treatment. 
