@@ -59,7 +59,7 @@ love_plot <- function(x) {
 }
 ```
 
-## Exercises
+## Exercises\
 
 ### QUESTION 1\
 > Use the experimental data to estimate the effect of the job training treatment. How much does it appear to affect 1978 income? Now look at the observational data (for all exercises from now on). How large is the raw difference in 1978 income between the treatment group and the PSID comparison group?
@@ -81,6 +81,7 @@ m1_raw
 ```
 
 The treatment effect estimate of the job training for the experimental data is $886, with 95% confidence interval of a decrease in 40.5 dollars to an increase in 1,813 dollars. \
+
 The treatment effect (naive) estimate of the job training for the actual data is that the job training decreases income by $16,541 with a 95% confidence interval of a decrease of 14,721 dollars to 18,361 dollars. \
 
 ### QUESTION 2\
@@ -103,9 +104,9 @@ The model after regression estimates that the average treatment effect will be a
 match_out3 <- matchit(treat_fact ~ black + hisp + married + nodegr + u74 + u75, 
                       data = d,
                       method = "exact")
-match_out3 
+
 # lets see how many cases are dropped
-2510 - 2379
+summary(match_out3)
 # get the data and weights
 match_data3 <- match.data(match_out3)
 # now lets do the (FS)ATT using the weights from the match_out3
@@ -113,9 +114,9 @@ lm(re78 ~ treat_fact, data = match_data3, weight = weights) %>%
   tidy( ,conf.int = TRUE)
 
 ```
-131 cases are dropped. However, my output is not telling me how many cases of this are from the treated group.\
+131 cases are dropped. Of these cases that are dropped, 10 treated cases are dropped.\
 
-The (FS)ATT is that income will decrease by $2,386, with a 95% confidence interval of a decrease of 1,078 dollars to 3,694 dollars. This is still way off from the experimental data's estimate. 
+The (FS)ATT is that income will decrease by $2,386, with a 95% confidence interval of a decrease of 1,078 dollars to 3,694 dollars. This is still way off from the experimental data's estimate. \
 
 ### QUESTION 4\
 > 4. Use the observational data to estimate each case's propensity to receive treatment using `glm()`. Use a logistic regression with quadratic terms for age, education, 1974 income, and 1975 income. Spend a few moments thinking about what this model says. If you are familiar with plotting in R, look at the density plots of the p-score for treated and untreated groups. (If not, you can move on. We'll do the same thing using `bal.plot()` in a bit.)
@@ -124,12 +125,22 @@ The (FS)ATT is that income will decrease by $2,386, with a 95% confidence interv
 psmod4 <- glm(treat_fact ~ age + educ + black + hisp + married + nodegr + re74 + 
            re75 + u74 + u75 + I(age^2) + I(educ^2) + I(re74^2) + I(re75^2), 
            data = d,
-           family = binomial) %>% 
-  tidy()
+           family = binomial) 
 
-psmod4
+## overlap in probabilities
+augment(psmod4, type.predict = "response") %>%  
+  ggplot(aes(.fitted, fill = treat_fact)) + 
+  geom_density(alpha = 0.4) + 
+  scale_x_log10()
+
+## overlap in log-odds
+augment(psmod4, type.predict = "link") %>% 
+  ggplot(aes(.fitted, fill = treat_fact)) + 
+  geom_density(alpha = 1/4) + 
+  scale_x_continuous()
 ```
 
+Looking at both of these graphs, they don't look very "matched", they aren't overlapping either time. Interesting.\
 
 ### QUESTION 5\
 >5. Conduct 1:1 nearest-neighbor matching on the log odds of the propensity score. Use `bal.plot()` to compare the overall propensity score distributions. Do once without replacement and once with replacement. Why do you think there's a difference? Try to figure it out. Estimate the ATT for each assumption (i.e., with or without replacement). If you achieve good overall balance on the propensity score, try checking individual covariate balance using `love.plot()`. 
@@ -178,6 +189,7 @@ bal.plot(ps_out5_r,
 love_plot(ps_out5_r)
 
 ```
+
 So, before running the `bal.plot()` function, just looking at the estimates we can see that once we use the replacement version of matching we are getting at least getting an estimate now that shows there is a possibility of an increase in income instead of just a decrease in income (without replacement: decrease 5,258 to 2,340 dollars; with replacement: decrease 1,609 dollars to increase of 1,623 dollars). \
 
 Now, looking at the `bal.plot()` I see that without replacement they do not seem to be congruent; however, with the replacement the distribution is **WAY MORE** similar. However, when looking at the `love.plot()`, we see that there is actually not as much balance as we would expect from thhe distribution when looking at the KS (more conservative) measure. \
@@ -197,11 +209,13 @@ W6 <- weightit(treat_fact ~ age + educ + black + hisp + married + nodegr + re74 
 # checking for balance using love_plot
 love_plot(W6)
 ```
+
 Well, looking at the output for the covariate balances, we see there are some alarming results. They are not very balanced. However, let's see what the estimates would be of income using this method.
 ```{r}
 lm(re78 ~ treat_fact, data = d, weights = W6$weights) %>%  
   tidy( ,conf.int = TRUE)
 ```
+
 This estimate looks way better than anything we've see so far. It looks pretty close to the 95% confidence interval of the experimental data. Here the confidence interval for the TE is an increase in income from 613 dollars to 1,665 dollars. In the experimental data the 95% CI was a decrease of 40.5 dollars to an increase in 1,813 dollars. We're in the range, but it doesn't account for the proposed decrease that the experimental data does include. \
 
 ### QUESTION 7\
@@ -221,6 +235,7 @@ CB7 <- weightit(treat_fact ~ age + educ + black + hisp + married + nodegr + re74
 love_plot(CB7)
 
 ```
+
 Now, the balance output looks much better, though not good enough. Especially when looking at the KS statistics. However, again, let's calculate the estimates. 
 
 ```{r}
@@ -228,6 +243,7 @@ Now, the balance output looks much better, though not good enough. Especially wh
 lm(re78 ~ treat_fact, data = d, weights = CB7$weights) %>%  
   tidy( ,conf.int = TRUE)
 ```
+
 These values look slightly better, it accounts for the increase and decrease with a 95% CI of decreasing 507 dollars to an increase in 646 dollars. \
 
 ### QUESTION 8\
@@ -244,7 +260,7 @@ m_match_out <- matchit(treat_fact ~ age + educ + black + hisp + married +
                          nodegr + re74 + re75 + u74 + u75, 
                         estimand = "ATT")
 # trying to see dropped cases
-m_match_out
+summary(m_match_out)
 # looking at balance
 love_plot(m_match_out)
 
@@ -254,6 +270,8 @@ lm(re78 ~ treat_fact, data = m_data8, weight = weights) %>%
   tidy( ,conf.int = TRUE)
 
 ```
+This time around, we don't have any treated cases that are dropped. \
+
 Although the covariates seem balanced with the mean differences, looking at the KS statistics output we see that they are actually even more imbalanced than we originally thought. The income estimates here encompass the experimental data but are still pretty bad (decrease in 1,313 dollars to an increase in 2,001 dollars).\
 
 ### QUESTION 9\
