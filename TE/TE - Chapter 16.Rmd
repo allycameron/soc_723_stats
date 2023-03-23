@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ((3+7+5)/3) 
 ((2+6+10)/3)
 ```
-  To look at the variation between Zac and Skylar you would compare 5 (Zac) and 6 (Sylar).
+  To look at the variation between Zac and Skylar you would compare 5 (Zac) and 6 (Sylar).\
 **b.	Isolate the variation within Zac and within Skylar in their vacation-taking.**\
 ```{r}
 # Zac 
@@ -140,7 +140,7 @@ mp %>%
 ```
 Since none of the districts are unbalance (all have 7 time periods) we know that the data is balanced. \
 
-4. Run an OLS regression, with no fixed effects, of `math4` on `expp` and `lunch`. Store the results as `m1`.
+> 4. Run an OLS regression, with no fixed effects, of `math4` on `expp` and `lunch`. Store the results as `m1`.
 
 ```{r}
 m1 <- lm(math4 ~ expp + lunch, data = mp)
@@ -149,7 +149,7 @@ tidy(m1)
 ```
 
 
-5. Modify the model in step 4 to include fixed effects for `distid` "by hand". That is, subtract out the within-`distid` mean of `math4`, `expp`, and `lunch`, creating new variables `math4_demean`, `expp_demean`, and `lunch_demean`, and re-estimate the model using those variables, storing the result as `m2`. 
+> 5. Modify the model in step 4 to include fixed effects for `distid` "by hand". That is, subtract out the within-`distid` mean of `math4`, `expp`, and `lunch`, creating new variables `math4_demean`, `expp_demean`, and `lunch_demean`, and re-estimate the model using those variables, storing the result as `m2`. 
 
 ```{r}
 mp <- mp %>% 
@@ -163,7 +163,7 @@ m2 <- lm(math4.demean ~ expp.demean + lunch.demean, data = mp)
 tidy(m2)
 ```
 
-6. Next we're going to estimate fixed effects by including `distid` as a set of dummies. This can be extremely slow, so for demonstration purposes use only the first 500 observations of your data (don't get rid of the other observations, though, you'll want them for the rest of this assignment). Run the model from step 4 but with dummies for different values of `distid`, saving the result as `m3`. Then, do a joint F test on the dummies (see Chapter 13), and report if you can reject that the dummies are jointly zero at the 99% level.
+> 6. Next we're going to estimate fixed effects by including `distid` as a set of dummies. This can be extremely slow, so for demonstration purposes use only the first 500 observations of your data (don't get rid of the other observations, though, you'll want them for the rest of this assignment). Run the model from step 4 but with dummies for different values of `distid`, saving the result as `m3`. Then, do a joint F test on the dummies (see Chapter 13), and report if you can reject that the dummies are jointly zero at the 99% level.
 
 Tip: `distid` is stored as a numeric variable, but you want it to be treated as a categorical variable. If your regression result only has one coefficient for `distid`  you've done it wrong.
 
@@ -172,18 +172,18 @@ Tip: `distid` is stored as a numeric variable, but you want it to be treated as 
 - For Python, visit [this page](https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.OLSResults.f_test.html) of the **statsmodels** documentation. The first example shows how to do a joint F-test comparing a long list of parameters to 0. You'll need to change the `1:` part, though. So pay attention to which parameter index numbers have the coefficients you want to test.
 
 
-7. Now we will use a specially-designed function to estimate a model with fixed effects. (Using the whole data set once again), use `feols()` from the **fixest** package in R, `reghdfe` from the **reghdfe** package in Stata, or `PanelOLS` from **linearmodels** in Python to estimate the model from step 4 but with fixed effects for `distid`. Save the result as `m4`. Include standard errors clustered at the `distid` level.
+> 7. Now we will use a specially-designed function to estimate a model with fixed effects. (Using the whole data set once again), use `feols()` from the **fixest** package in R, `reghdfe` from the **reghdfe** package in Stata, or `PanelOLS` from **linearmodels** in Python to estimate the model from step 4 but with fixed effects for `distid`. Save the result as `m4`. Include standard errors clustered at the `distid` level.
 
 
-8. Now add fixed effects for year to your model from step 7 to create a two-way fixed effects model. Keep the standard errors clustered at the `distid` level. Save the results as `m5`.
+> 8. Now add fixed effects for year to your model from step 7 to create a two-way fixed effects model. Keep the standard errors clustered at the `distid` level. Save the results as `m5`.
 
 
-9. Using `modelsummary()` from **modelsummary** in R, `esttab` from **estout** in Stata, or `Stargazer` from **stargazer.stargazer** in Python, make a regression table including `m1` through `m5` in the same table so you can compare them all. Read the documentation of your command to figure out how to include the `expp`, `lunch`, `expp_demean`, and `lunch_demean` predictors in the table without clogging the thing up with a bunch of dummy coefficients from `m3`.
+> 9. Using `modelsummary()` from **modelsummary** in R, `esttab` from **estout** in Stata, or `Stargazer` from **stargazer.stargazer** in Python, make a regression table including `m1` through `m5` in the same table so you can compare them all. Read the documentation of your command to figure out how to include the `expp`, `lunch`, `expp_demean`, and `lunch_demean` predictors in the table without clogging the thing up with a bunch of dummy coefficients from `m3`.
 
 Write down two interesting things you notice from the table. Multiple possible answers here.
 
 
-10. Finally, we'll close it out by using correlated random effects instead of fixed effects (see 16.3.3). You already have `expp_demean` and `lunch_demean` from earlier. Now, modify the code from that slightly to add on `expp_mean` and `lunch_mean` (the mean within `distid` instead of the value *minus* that mean). Then, regress `math4` on `expp_demean`, `lunch_demean`, `expp_mean`, and `lunch_mean`, with random effects for `distid` using `lmer()` from **lme4** in R, `xtreg, re` in Stata, or `RandomEffects` from **linearmodels** in Python. Show a summary of the regression results.
+> 10. Finally, we'll close it out by using correlated random effects instead of fixed effects (see 16.3.3). You already have `expp_demean` and `lunch_demean` from earlier. Now, modify the code from that slightly to add on `expp_mean` and `lunch_mean` (the mean within `distid` instead of the value *minus* that mean). Then, regress `math4` on `expp_demean`, `lunch_demean`, `expp_mean`, and `lunch_mean`, with random effects for `distid` using `lmer()` from **lme4** in R, `xtreg, re` in Stata, or `RandomEffects` from **linearmodels** in Python. Show a summary of the regression results.
 
 *Language-specific instructions*: 
 
