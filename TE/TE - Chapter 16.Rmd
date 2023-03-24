@@ -34,9 +34,7 @@ Zac's within variation in vacation-taking compares the fact that in 2012 he took
 
 **c.	(Difficult!) We perform a fixed effects analysis of the effect of vacations on happiness. A vacation increases Zac’s happiness by 1 “happiness point,” but it increases Skylar’s happiness by 2 “happiness points.” Will our fixed effects estimate likely give us an answer closer to 1, closer to 2, or exactly 1.5?**\
 
-(ask about this question tomorrow)\
-
-Not really sure how to work through the reasoning for this one. I am thinking that beacause her within variation is double that the fixed effect will have some larger value than 1. I am going to guess it is closer than 2, but I am not quite sure how to think through this. \
+Not really sure how to work through the reasoning for this one. I am thinking that because her within variation is double that the fixed effect will have some larger value than 1. I am going to guess it is closer than 2, but I am not quite sure how to think through this. \
 
 > 2.	You are interested in the effect of cultural events on the levels of trust in a city. Perhaps big events like concerts bring people together and they can trust each other more. You plan to look at the relationship between trust and number of events in a given year, with fixed effects for city. Draw a causal diagram for this research question with at least four back door paths. Which paths will be closed by fixed effects, and which will remain open?
 
@@ -98,7 +96,7 @@ When cultural events increase in a city (during a particular year) by one unit t
 
 > 3.	Two-way fixed effects with terms for both individual and time are often referred to as “controlling for individual and time effects”. Why might a researcher want to do this rather than just taking individual fixed effects and adding a linear/polynomial/etc. term for time?
 
-(ask more about this question)\
+The researcher might want to do this if the effects of the year are extremely varied and individual fixed effects may not account for this.
 
 > 4.	Which of the following explains why random effects is likely to do a better job of estimating the individual-level effects than fixed effects, if its assumptions hold?
 
@@ -155,38 +153,73 @@ tidy(m1)
 mp <- mp %>% 
   group_by(distid) %>% 
   mutate(math4.demean = math4 - mean(math4),
-         expp.demean = expp - mean(expp),
-         lunch.demean = lunch - mean(lunch))
+         expp_demean = expp - mean(expp),
+         lunch_demean = lunch - mean(lunch))
 
-m2 <- lm(math4.demean ~ expp.demean + lunch.demean, data = mp)
+m2 <- lm(math4.demean ~ expp_demean + lunch_demean, data = mp)
 
 tidy(m2)
 ```
 
 > 6. Next we're going to estimate fixed effects by including `distid` as a set of dummies. This can be extremely slow, so for demonstration purposes use only the first 500 observations of your data (don't get rid of the other observations, though, you'll want them for the rest of this assignment). Run the model from step 4 but with dummies for different values of `distid`, saving the result as `m3`. Then, do a joint F test on the dummies (see Chapter 13), and report if you can reject that the dummies are jointly zero at the 99% level.
 
-Tip: `distid` is stored as a numeric variable, but you want it to be treated as a categorical variable. If your regression result only has one coefficient for `distid`  you've done it wrong.
+```{r}
+m3 <- lm(math4 ~ expp + lunch + factor(distid), data = mp %>% 
+           slice(1:500))
 
-*Language-specific instructions*: 
+# looking at chapter 13 we will need the car package,
+# and the linearHypothesis and matchCoefs() functions
+library(car)
+linearHypothesis(m3,matchCoefs(m3,'distid'))
+```
+Since our p-value is below .01, we can reject the null hypothesis (that the fixed effects are 0 jointly at the 99% level).
 
-- For Python, visit [this page](https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.OLSResults.f_test.html) of the **statsmodels** documentation. The first example shows how to do a joint F-test comparing a long list of parameters to 0. You'll need to change the `1:` part, though. So pay attention to which parameter index numbers have the coefficients you want to test.
+> 7. Now we will use a specially-designed function to estimate a model with fixed effects. (Using the whole data set once again), use `feols()` from the **fixest** package in R to estimate the model from step 4 but with fixed effects for `distid`. Save the result as `m4`. Include standard errors clustered at the `distid` level.
 
+```{r}
+library(fixest)
+library(psycModel)
+# don't really understand the clustered part here...
+m4 <- feols(math4 ~ expp + lunch | distid, data = mp)
 
-> 7. Now we will use a specially-designed function to estimate a model with fixed effects. (Using the whole data set once again), use `feols()` from the **fixest** package in R, `reghdfe` from the **reghdfe** package in Stata, or `PanelOLS` from **linearmodels** in Python to estimate the model from step 4 but with fixed effects for `distid`. Save the result as `m4`. Include standard errors clustered at the `distid` level.
+tidy(m4) 
+```
 
 
 > 8. Now add fixed effects for year to your model from step 7 to create a two-way fixed effects model. Keep the standard errors clustered at the `distid` level. Save the results as `m5`.
 
+```{r}
+# two way fixed effects (adding year)
+m5 <- feols(math4 ~ expp + lunch | distid + year, data = mp)
+tidy(m5)
+```
 
-> 9. Using `modelsummary()` from **modelsummary** in R, `esttab` from **estout** in Stata, or `Stargazer` from **stargazer.stargazer** in Python, make a regression table including `m1` through `m5` in the same table so you can compare them all. Read the documentation of your command to figure out how to include the `expp`, `lunch`, `expp_demean`, and `lunch_demean` predictors in the table without clogging the thing up with a bunch of dummy coefficients from `m3`.
+> 9. Using `modelsummary()` from **modelsummary** in R, make a regression table including `m1` through `m5` in the same table so you can compare them all. Read the documentation of your command to figure out how to include the `expp`, `lunch`, `expp_demean`, and `lunch_demean` predictors in the table without clogging the thing up with a bunch of dummy coefficients from `m3`. Write down two interesting things you notice from the table. Multiple possible answers here.
 
-Write down two interesting things you notice from the table. Multiple possible answers here.
+```{r}
+# making the combined table
+library(modelsummary)
+modelsummary(list(m1,m2,m3,m4,m5), coef_omit = "distid")
+```
 
+I notice that even with our modifications, model 2, model 3, and model 4 all have similar estimations for `expp`/`expp.demean` (0.012) and `lunch`/`lunch.demean` (0.314). Another interesting thing is that model 1 and 3 almost have exact opposite intercepts. I am not sure how imporant the intercepts are here but I find that interesting that the magnitude is almost the same but m3 just has it as a negative value. Also, I wonder why the last model found no effect for the `expp` variable
 
 > 10. Finally, we'll close it out by using correlated random effects instead of fixed effects (see 16.3.3). You already have `expp_demean` and `lunch_demean` from earlier. Now, modify the code from that slightly to add on `expp_mean` and `lunch_mean` (the mean within `distid` instead of the value *minus* that mean). Then, regress `math4` on `expp_demean`, `lunch_demean`, `expp_mean`, and `lunch_mean`, with random effects for `distid` using `lmer()` from **lme4** in R, `xtreg, re` in Stata, or `RandomEffects` from **linearmodels** in Python. Show a summary of the regression results.
 
-*Language-specific instructions*: 
+```{r}
+library(lme4)
 
-- In R, `lmer()` has a hard time with numeric variables as categorical indicators. Create a new, factor version of `distid` directly in the data before running the model, and use that instead.
+# adding other means
+mp2 <- mp %>%
+   mutate(distid_af = factor(distid)) %>%
+  group_by(distid) %>%
+  mutate(expp_mean = mean(expp),
+         lunch_mean = mean(lunch))
 
+# run the regression
+m6 <- lmer(math4 ~ (1|distid_af) + expp_demean + lunch_demean + expp_mean + lunch_mean, data = mp2)
+
+# summary
+summary(m6)
+```
 
