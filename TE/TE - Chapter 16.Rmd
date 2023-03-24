@@ -170,7 +170,10 @@ m3 <- lm(math4 ~ expp + lunch + factor(distid), data = mp %>%
 # looking at chapter 13 we will need the car package,
 # and the linearHypothesis and matchCoefs() functions
 library(car)
-linearHypothesis(m3,matchCoefs(m3,'distid'))
+
+# linearHypothesis(m3,matchCoefs(m3,'distid'))
+
+# NOTE: made above code a comment for brevity in html doc
 ```
 Since our p-value is below .01, we can reject the null hypothesis (that the fixed effects are 0 jointly at the 99% level).
 
