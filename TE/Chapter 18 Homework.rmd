@@ -47,10 +47,10 @@ At first glance, this design seems like it could be a good way to estimate the e
 > 6.  Consider the below table of mean outcomes, and calculate the difference-in-difference effect of treatment. Write out the equation you used to calculate it (i.e. show how the four numbers in the table are combined to get the estimate).
 
 
-|           | before |  after |
-|-----------|:------:|:------:|
-| treated   |    5   |    9   |
-| untreated |    6   |   7.5  |
+|           | before | | after |
+|-----------|:------:|:-------:|
+| treated   |    5   |     9   |
+| untreated |    6   |    7.5  |
 
 ```{r}
 # (treated2-treated1) - (untreated2-untreated1)
