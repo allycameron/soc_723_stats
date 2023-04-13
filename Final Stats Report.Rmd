@@ -166,6 +166,8 @@ Williams, K. L., Coles, J. A., and Reynolds, P. (2020). (Re) creating the script
 \newpage
 ![](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/Q255.png)
 
+\newpage
+
 ### Code
 
 Here is my data where I manipulated variables for the models.
