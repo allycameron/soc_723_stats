@@ -1,0 +1,529 @@
+---
+title: "Final Project"
+output: html_document
+date: "2023-04-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# STEP 1: Research Question and Estimand\
+
+Research Question: Do high school math teachers' classroom-related racial beliefs influence beliefs in deficit narratives?\
+
+Estimands:\
+    1) What is the direct effect of teachers' race-conscious beliefs on teachers' belief of deficit narratives?\
+    b. What is the direct effect of teachers' minimization of race beliefs on teachers' belief in deficit narratives?\
+    
+The race conscious beliefs and minimization of race beliefs come from two constructs emerging from a factor analysis I did for my senior thesis. Additionally, I ran a factor analysis of the teachers belief variables in Stata to access which teacher beliefs fit together as deficit narratives.\
+
+**Factor Loading for Predictor variable**
+![Education Racial Attitudes](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/Education Race Attiudes.png)
+Here you can see that `racebelief1_3`, `racebelief1_4`, `racebelief1_5` create a construct I label as a mindset leaning towards minimization of race. The higher the score on this construct the more the variables "fit" within this construct. The construct labeled mindset leaning towards racial consciousness is composed of the variables `racebelief1_1r`, `racebelief1_2r`, `racebelief2_2`, `racebelief2_3`.`Racebelief1_1` and `racebelief1_2` scales are revered as they have a negative association with this construct. \
+
+**Factor Loading for Outcome variable**\
+![Deficit Narratives](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/teacher belief factor.png)
+Here you can see that `teacherbeliefs1_4`, `teacherbeliefs1_5`, `teacherbeliefs2_2`, `teacherbeliefs2_3`,`teacherbeliefs2_4`, and `teacherbeliefs2_5` create a construct I label as beliefs in deficit narratives. The higher the score on this construct the more the variables "fit" this construct.\
+
+![Natio](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/Q255.png)
+As we can see, all of these variables fit into the construct. 
+
+# STEP 2: Data Identification\
+![DAG idea 1](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/DAG 1.png)
+
+In the first DAG, `ideology`, taking a race course (`gradrace` or `collegerace`), and demographics (`degree`, `race`, `latinx`) all directly affect race beliefs on education directly and indirectly affect deficit narratives through general race beliefs and beliefs about racial test gaps. Additionally, `gender` indirectly influences deficit narratives through relationship building and through beliefs about racial tests gaps and directly predicts race beliefs. In this causal diagram, we  need to control for general racial beliefs and other racial beliefs about people of color and achievement (which are confounders in this diagram). Furthermore, we need to control for relationship building OR gender (I will control for gender). I posit that relationship building will be negatively influenced by gender
+
+![DAG idea 2](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/DAG 2.png)
+
+
+In the second DAG, `ideology`, taking a race course (`gradrace` or `collegerace`), and demographics (`degree`, `race`, `latinx`, and `regionchild`) and  `gender` all directly affect race beliefs on education directly and predict deficit narratives through general race beliefs, making them confounders. In this causal diagram, we  need to control for general racial beliefs, other racial beliefs about math (`q255_1`, `q255_2`, `q255_3`, `q255_4`, `q255_5`), taking a race course, demographics (including gender), and political ideology. 
+
+
+**Factor Loading for Adjustment variables**
+
+![General Race Beliefs](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/General Race Attitudes.png)
+
+![Beliefs about Racial Test Gaps](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/Q255.png)
+Here are two other factor loadings for variables included as predictors. 
+
+# STEP 3: Manipulating Data\
+
+### manipulating secondary variables\
+First, let's get all of the  variables transformed (except the ones that come from )
+```{r}
+library(haven)
+library(tidyverse)
+library(dplyr)
+d1 <- read_dta("/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/NSHsMT Pilot Wave 1 Restricted Data Clean.dta") %>% 
+  haven::zap_labels()
+
+d1 <- d1 %>% 
+  select(caseid ,gender, latinx, race_1, race_2, race_3, race_4, race_5, 
+         degree_1, degree_2, degree_3, degree_4, degree_5, degree_6, 
+         collegerace_1, collegerace_2, collegerace_3, collegerace_4, 
+         collegerace_5, racebelief1_1, racebelief1_2, racebelief1_3, 
+         racebelief1_4, racebelief1_5, racebelief2_1, racebelief2_2, 
+         racebelief2_3, racebelief2_4, racebelief2_5, racialbeliefs1_1, 
+         racialbeliefs1_2, racialbeliefs1_3, racialbeliefs1_4, 
+         racialbeliefs1_5, racialbeliefs2_1, racialbeliefs2_2, 
+         racialbeliefs2_3, racialbeliefs2_4, racialbeliefs2_5, ideology, 
+         gradrace, teacherbeliefs1_1, teacherbeliefs1_2, teacherbeliefs1_3,
+         teacherbeliefs1_4, teacherbeliefs1_5, teacherbeliefs2_1, 
+         teacherbeliefs2_2, teacherbeliefs2_3, teacherbeliefs2_4, 
+         teacherbeliefs2_5, teacherbeliefs3_1, teacherbeliefs3_2, 
+         teacherbeliefs3_3, teacherbeliefs3_4, q255_1, q255_2, q255_3, q255_4, q255_5, regionchild) %>%
+  mutate(latinx = if_else(latinx == 2, 0L, 1L))
+
+# create multi-race variable
+d1 <- d1 %>% 
+  mutate(race_6 = case_when(
+  race_1 == 1 & race_2 == 1 & race_3 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_3 == 1 & race_4 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_3 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_3 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_2 == 1 & race_3 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_3 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_4 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_3 == 1 & race_4 == 1 ~ 1,
+  race_1 == 1 & race_3 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_2 == 1 & race_3 == 1 & race_4 == 1 ~ 1,
+  race_2 == 1 & race_3 == 1 & race_5 == 1 ~ 1,
+  race_2 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_3 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 ~ 1,
+  race_1 == 1 & race_3 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 ~ 1, 
+  race_1 == 1 & race_3 == 1 ~ 1, 
+  race_1 == 1 & race_4 == 1 ~ 1, 
+  race_1 == 1 & race_5 == 1 ~ 1, 
+  race_2 == 1 & race_3 == 1 ~ 1, 
+  race_2 == 1 & race_4 == 1 ~ 1, 
+  race_2 == 1 & race_5 == 1 ~ 1, 
+  race_3 == 1 & race_4 == 1 ~ 1, 
+  race_3 == 1 & race_5 == 1 ~ 1, 
+  race_4 == 1 & race_5 == 1 ~ 1, 
+  TRUE ~ 0))
+#degree variable
+d1 <- d1 %>% 
+  mutate(degree = case_when(
+    degree_1 == 1 ~ 1, 
+    degree_2 == 1 ~ 2, 
+    degree_3 == 1 ~ 3, 
+    degree_4 == 1 ~ 4, 
+    degree_5 == 1 ~ 5, 
+    degree_6 == 1 ~ 0
+  ))
+# race course variable
+d1 <- d1 %>% 
+  mutate(collegerace = case_when(
+    collegerace_1 == 1 ~ 1, 
+    collegerace_2 == 1 ~ 1, 
+    collegerace_3 == 1 ~ 1, 
+    collegerace_4 == 1 ~ 1, 
+    collegerace_5 == 1 ~ 0))
+# finishing race variable
+d2 <- d1 %>% 
+  filter(race_6 != 1) %>% 
+  mutate(race_7 = if_else(latinx == 1 & race_1 == 1 & race_2 != 1 & race_3 != 1 & race_4 != 1 & race_5 != 1, 1L, 0L), 
+         race_1a = case_when( 
+           race_7 == 1 ~ 0, 
+           race_7 == 0 & race_1 == 1 ~ 1,
+           TRUE ~ race_1))  
+  # adding all race variables together in one variable a
+d4 <- d2 %>% 
+  mutate(race = case_when(
+    race_1a == 1 ~ 1, # white, non-Hispanic
+    race_2 == 1 ~ 2, 
+    race_3 == 1 ~ 3, 
+    race_4 == 1 ~ 4, 
+    race_5 == 1 ~ 5, 
+    race_7 == 1 ~ 7)) # Hispanic, white
+d3 <- d1 %>% 
+  filter(race_6 ==1) %>% 
+  mutate(race = case_when(
+    race_6 == 1 ~ 6))
+
+# finalizing most messed with variables
+d <- bind_rows( d3, d4) %>% 
+  select(caseid, gender, latinx, race, degree, collegerace, ideology, 
+         racebelief1_2, racebelief1_1, racebelief1_3, racebelief1_4, 
+         racebelief1_5, racebelief2_1, racebelief2_2, racebelief2_3, 
+         racebelief2_4, racebelief2_5, racialbeliefs1_1, racialbeliefs1_2, 
+         racialbeliefs1_3, racialbeliefs1_4, racialbeliefs1_5, 
+         racialbeliefs2_1, racialbeliefs2_2, racialbeliefs2_3, 
+         racialbeliefs2_4, racialbeliefs2_5, gradrace, teacherbeliefs1_1, 
+         teacherbeliefs1_2, teacherbeliefs1_3,
+         teacherbeliefs1_4, teacherbeliefs1_5, teacherbeliefs2_1, 
+         teacherbeliefs2_2, teacherbeliefs2_3, teacherbeliefs2_4, 
+         teacherbeliefs2_5, teacherbeliefs3_1, teacherbeliefs3_2, 
+         teacherbeliefs3_3, teacherbeliefs3_4, q255_1, q255_2, q255_3, 
+         q255_4, q255_5, regionchild)
+
+# gender and gradrace, black/non-white, just incase these are better predictors...
+d <- d %>% 
+  filter(gender != 3 | gender != 4) %>% 
+  mutate(female = if_else(gender == 2, 1L, 0L),
+         black = if_else(race == 2, 1L, 0L),
+         non_white = if_else(race != 1, 1L, 0L),
+         gradrace = if_else(gradrace == 1, 1L, 0L)) %>% 
+  select(-gender) %>% 
+   mutate_all(~ na_if(., -99))
+```
+
+### manipulating predictor variables created from the constructs\
+
+Next, let's work on the variables we are creating from the constructs. We will take the row means for each case and get their average score for each construct. We will scale all the variables so that their mean becomes zero. This should help us interpret the results of our regression later. \
+
+```{r}
+  # first, let's reverse scales for negative values in construct
+d <- d %>%
+  mutate(racebelief1_1r = case_when(
+    racebelief1_1 == 6 ~ 1, 
+    racebelief1_1 == 5 ~ 2,
+    racebelief1_1 == 4 ~ 3, 
+    racebelief1_1 == 3 ~ 4, 
+    racebelief1_1 == 2 ~ 5, 
+    racebelief1_1 == 1 ~ 6
+    ), 
+    racebelief1_2r = case_when(
+      racebelief1_2 == 6 ~ 1, 
+    racebelief1_2 == 5 ~ 2,
+    racebelief1_2 == 4 ~ 3, 
+    racebelief1_2 == 3 ~ 4, 
+    racebelief1_2 == 2 ~ 5, 
+    racebelief1_2 == 1 ~ 6
+    )) 
+
+# create new variables with the average of the variables within each construct
+# this should give us each teacher's average score for each construct. 
+d <- d %>% 
+  mutate(unscaled_ed_minimize = rowMeans(d[, c("racebelief1_3", "racebelief1_4",
+                                       "racebelief1_5")]), 
+         ed_minimize = unscaled_ed_minimize %>% 
+           scale() %>%
+           as.vector(), 
+         unscaled_ed_conscious = rowMeans(d[, c("racebelief1_1r", "racebelief1_2r",
+                                        "racebelief2_2", "racebelief2_3")]), 
+         ed_conscious = unscaled_ed_conscious %>% 
+                                    scale() %>% 
+           as.vector(), 
+         # adjustments
+         gen_evasive =  rowMeans(d[, c("racialbeliefs1_1", "racialbeliefs1_2",
+                                        "racialbeliefs1_4",
+                                        "racialbeliefs1_5","racialbeliefs2_2", 
+                                        "racialbeliefs2_5" )]) %>%  
+                                   scale () %>% 
+                                   as.vector(), 
+         gen_CRT = rowMeans(d[, c("racialbeliefs1_3", "racialbeliefs2_3",
+                                   "racialbeliefs2_4")]) %>% scale() %>% 
+                              as.vector(), 
+         poc_math = rowMeans(d[, c("q255_1", "q255_2", "q255_3", "q255_4", "q255_5")]) %>%  scale() %>%  as.vector()) %>% 
+  select(caseid, female, latinx, race, degree, collegerace, ideology, gradrace,
+         teacherbeliefs1_1, teacherbeliefs1_2, teacherbeliefs1_3, 
+         teacherbeliefs1_4, 
+         teacherbeliefs1_5, teacherbeliefs2_1, teacherbeliefs2_2,
+         teacherbeliefs2_3, teacherbeliefs2_4, teacherbeliefs2_5, 
+         teacherbeliefs3_1, teacherbeliefs3_2,teacherbeliefs3_3,
+         teacherbeliefs3_4, ed_minimize, ed_conscious, gen_evasive, 
+         gen_CRT, poc_math, regionchild, unscaled_ed_minimize, unscaled_ed_conscious) %>% 
+  drop_na()
+```
+
+### manipulating outcome variable, which also comes from a construct
+```{r}
+
+
+d <- d %>%
+  mutate(unscaled_deficit = rowMeans(d[, c("teacherbeliefs1_4", "teacherbeliefs1_5", "teacherbeliefs2_2", "teacherbeliefs2_3","teacherbeliefs2_4",
+                                   "teacherbeliefs2_5" )]), 
+         deficit = unscaled_deficit %>% 
+           scale () %>%  as.vector ()) %>% 
+  select(caseid, female, latinx, race, degree, collegerace, ideology, gradrace,
+         ed_minimize, ed_conscious, gen_evasive, gen_CRT, deficit,
+         poc_math, regionchild, unscaled_ed_minimize, unscaled_ed_conscious, 
+         unscaled_deficit) %>%
+  # also making categorical variables factors
+   mutate(degree = as.factor(degree), 
+         race = as.factor(race), 
+         ideology = as.factor(ideology), 
+         female = as.factor(female), 
+         latinx = as.factor(latinx), 
+         collegerace = as.factor(collegerace), 
+         gradrace = as.factor(gradrace), 
+         regionchild = as.factor(regionchild))
+# going to make binary, those above the 75th percentile will be 1
+# below will be 0
+
+quantile(d$deficit, .75) 
+summary(d$deficit)
+
+d <- d %>% 
+  mutate(deficit_bin = as.factor(if_else(deficit > 0.6208399 , 1, 0))) %>% 
+
+  
+  select(caseid, female, latinx, race, degree, collegerace, ideology, gradrace,
+         ed_minimize, ed_conscious, gen_evasive, gen_CRT, deficit, deficit_bin,
+         poc_math, regionchild, unscaled_ed_minimize, unscaled_ed_conscious, 
+         unscaled_deficit)
+
+glimpse(d)
+View(d)
+
+  
+```
+
+```{r}
+cor(d$ed_conscious, d$gen_CRT, method = "pearson") # moderate + correlation
+cor(d$gen_evasive2, d$ed_minimize2, method = "pearson") # moderate + correlation
+cor(d$ed_conscious2, d$ed_minimize2, method = "pearson") # moderate - correlation
+cor(d$gen_evasive2, d$gen_CRT2, method = "pearson") #moderate - correlation
+```
+
+# STEP 4: Visualizing data\
+```{r}
+# scatter plots to look at the relationship 
+library(ggplot2)
+
+# unscaled variables for graph
+## between minimization of race and deficit narratives
+ggplot(d, aes(x = ed_minimize , y = deficit_bin)) +
+  geom_jitter(width = 0.2, height = 0.2) +
+  labs(x = "Teachers' average score on Minimization of Race Construct", 
+       y = "Teachers' average score on Belief in Deficit Narratives", 
+        title = paste0("Relationship between Minimization of Race",
+                      " and Belief in Deficit Narratives")) 
+      # seems non-linear but close to positive linear relationship
+
+## between race consciousness and deficit narratives
+ggplot(d, aes(x = unscaled_ed_conscious, y = unscaled_deficit)) +
+  geom_jitter(width = 0.2, height = 0.2) +
+  labs(x = "Teachers' average score on Race-Consciousness Construct", 
+       y = "Teachers' average score on Belief in Deficit Narratives", 
+       title = paste0("Relationship between Race Consciousness",
+                      " and Belief in Deficit Narratives"))  
+       # seems like a negative linear relationship
+
+# density plots to look at variables #
+
+## of outcome variable
+ggplot(d, aes(x = deficit)) + geom_density() +
+  labs(x = "Average Score on Deficit Narrative Construct (Scaled; Mean = 0)", 
+       y = "Density", 
+       title = paste0("Distrbution of Teachers' Average Scores on Deficit", 
+       " Narrative Construct"))
+
+  
+## of predictor variables
+ggplot(d, aes(x = ed_minimize)) + geom_density() +
+  labs (title = "Average score on Belief in Min. of Race Construct",
+        x = "Average score")
+        # seems negatively skewed
+ggplot(d, aes(x = ed_conscious)) + geom_density() + 
+  labs (title = "Average score on Belief in Race Conscious Construct (Scaled)", 
+        x = "Average score")
+        # seems positively skewed
+## of adjustments
+ggplot(d, aes(x = gen_CRT)) + geom_density() +
+  labs (x = "Average score on Belief in CRT Construct (Scaled)", 
+        title = "Teachers Belief in CRT mindset (Standardized)")
+# positively skewed
+ggplot(d, aes(x = gen_evasive)) + geom_density() +
+  labs (x = "Average score on Belief in Race Evasive Construct (Scaled)", 
+        title = "Teachers Belief in Race Evasiveness(Standardized)")
+# almost Gaussian, slight negative skew
+ggplot(d, aes(x = poc_math)) + geom_density() +
+  labs (x = "Average score on Support for Closing Racial Test Gaps (Scaled)", 
+        title = paste0("Teachers Belief in Support in Initiatives to ",
+        "Close Racial Test Gaps"),
+        subtitle = "(Standardized)")# slight positive skew
+      
+ggplot(d, aes(x = ideology)) + geom_bar() + 
+  scale_x_discrete(labels = c("Extremely liberal","Somewhat liberal", 
+                              "Lean liberal", "In the middle", 
+                              "Lean conservative", "Somewhat conservative",
+                              "Extremely conservative")) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) + 
+  labs(x = "Political Ideology", 
+       title = "Number of Teachers of Each Political Ideology")
+# slightly negatively skewed
+ggplot(d, aes(x = female)) + geom_bar() + 
+  scale_x_discrete(labels = c("Male", "Female")) + labs(x = "Gender", 
+                                  title = "Number of Teachers of Each Gender")
+  # more females than males
+ggplot(d, aes(x = gradrace)) + geom_bar() + 
+  scale_x_discrete(labels = c("No", "Yes")) + 
+  labs(x = "Taken a Graduate-Level Race Course", 
+       title = "Number of Teachers who have Taken a Race Course in Grad School")
+# more people have not taken grad course
+ggplot(d, aes(x = collegerace)) + geom_bar() + 
+  scale_x_discrete(labels = c("No", "Yes")) + 
+  labs(x = "Taken a Undergraduate-Level Race Course", 
+       title = "Number of Teachers who have Taken a Race Course in College") 
+# about equal
+ggplot(d, aes(x = degree)) + geom_bar() + 
+  scale_x_discrete(labels = c("Associate's degree", "Bachelor's degree",
+                              "Master's degree", 
+                              "Education Specialist degree", 
+                              "High-level professional degree", 
+                              "No postsecondary degree")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
+  labs(x = "Degree", title = "Number of Teachers with Each type of Degree") 
+# two humps but not binomial
+ggplot(d, aes(x = race)) + geom_bar() + 
+  scale_x_discrete(labels = c("Non-Latinx White", "Black", "Asian", 
+                              "Pacific Islander",
+                              "Mixed Race", "White Latinx")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
+  labs(x = "Race", title = "Number of Teachers of Each Race")
+# skewed towards whiteness
+ggplot(d, aes(x = regionchild)) + geom_bar() + 
+  scale_x_discrete(labels = c("Northeast", "Midwest", "South", "West", 
+                              "Outside of the U.S.")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
+  labs(x = "Region Grew up In", title = "Number of Teachers from Each Region")
+
+log(d$ed_minimize)
+# + gm_smoth(method) = OR take predictions and make a line ? 
+```
+# STEP 5: Creating Models\
+
+```{r}
+# models for minimization of race mindset construct
+m1 <- glm(deficit ~ ed_minimize + gen_evasive + gen_CRT + poc_math + 
+            ideology + female + gradrace + collegerace + degree + race  +
+             regionchild, 
+          data = d, 
+          family = gaussian(link = "identity"))
+
+m2 <- glm(deficit ~ ed_minimize + I(ed_minimize^2) + gen_evasive + 
+            gen_CRT + poc_math + ideology + female + gradrace + collegerace +
+            degree + race  + regionchild, 
+          data = d, 
+          family = gaussian(link = "identity"))
+# models for race conscious mindset construct
+
+m3 <- glm(deficit ~  ed_conscious + gen_evasive + gen_CRT + poc_math +
+          ideology + female + gradrace + collegerace + degree + race +
+           regionchild,
+          data = d, 
+          family = gaussian(link = "identity"))
+m4 <- glm(deficit ~ ed_conscious + I(ed_conscious^2) + gen_evasive +
+          gen_CRT + poc_math + ideology + female + gradrace + collegerace + 
+            degree + race + regionchild,
+          data = d, 
+          family = gaussian(link = "identity"))
+
+
+```
+### What about multicollinearity?
+
+I am hoping that standardizing the variables will help with this. 
+
+```{r}
+library(car)
+vif(m2)
+vif(m4)
+```
+
+# STEP 6: Comparing Models and the Estimates\
+```{r}
+library(broom)
+m1_tidy <- tidy(m1, conf.int = TRUE) %>% 
+  filter(term == "ed_minimize") %>% 
+  add_column(model_name = "m1")
+
+m2_tidy <- tidy(m2, conf.int = TRUE) %>% 
+  filter(term == "ed_minimize") %>% 
+  add_column(model_name = "m2")
+
+m3_tidy <- tidy(m3, conf.int = TRUE) %>% 
+  filter(term == "ed_conscious") %>% 
+  add_column(model_name = "m3")
+m4_tidy <- tidy(m4, conf.int = TRUE) %>% 
+  filter(term == "ed_conscious") %>% 
+  add_column(model_name = "m4")
+
+m_tidy <- bind_rows(m2_tidy, m4_tidy)
+
+ggplot(m_tidy, aes(x = model_name, y = estimate, ymin = conf.low, ymax = conf.high, color = term)) +  geom_pointrange() +
+  labs(x = "Model", y = "Estimate", 
+       title = "Estimated effect of average score on Race construct",
+       subtitle = "on teacher's score on deficit narrative construct",
+       caption = "95% confidence interval") +  
+         geom_hline(yintercept = 0, linetype = "dashed") + 
+  theme(legend.title = element_blank(), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  scale_color_manual(values = c("skyblue1","royalblue4"), 
+                     limits = c("ed_minimize", "ed_conscious"),  
+                     labels = c('Minimization of Race Construct',
+                                'Race Consciousness Construct'))
+```
+
+```{r}
+# model comparison for minimization of race mindset construct
+BIC(m1, m2)
+AIC(m1, m2)
+
+# model comparison for race conscious mindset construct
+BIC(m3, m4)
+AIC(m3, m4)
+```
+Although the BIC and the AIC both say that the models that follow DAG 1 (adjusting for just the general education beliefs) is a better model, I believe the second DAG is more plausible, and thus think model 2 and model 4 are better models.\
+
+# STEP 8: Interpretation\
+
+```{r}
+modelsummary::msummary(m2, stars = TRUE, coef_omit = "^(?!.*Intercept|.*ed_minimize)")
+```
+**Interpretation of model 2**:\
+For every one standard deviation increase in a teacher's average score for the minimization of race construct, holding all other variables constant, a teacher's belief in deficit narratives is predicted to decrease by 0.231 (+/- 0.075) standard deviations. In other words, higher scores on the minimization of race construct are associated with higher values on the deficit narratives construct. This *is* statistically significant with 95% confidence intervals. However, the R^2 value is only 0.404. \
+
+```{r}
+
+modelsummary::msummary(m4, stars = TRUE, coef_omit = "^(?!.*Intercept|.*ed_conscious)")
+```
+**Interpretation for model 4**:\
+For every one standard deviation increase in a teacher's average score for the race conscious construct, holding all other variables constant, a teacher's belief in deficit narratives is predicted to decrease by 0.112 (+/- 0.095) standard deviations. In other words, higher scores on the race conscious construct are associated with lower values on the deficit narratives construct. However, this is not statistically significant with 95% confidence intervals, and the R^2 value is only 326.5.\
+
+quantile(data$x, .75, ) then anything above it = 1 and below = 0  
+
+
+```{r}
+# race minimization
+exp(0.799)/ (1 + exp(0.799))  
+
+# race conscious
+exp(-0.714)/(1+exp(-0.714))
+```
+
+
+```{r}
+theme_set(theme_light(base_family = "Avenir"))
+library(ggeffects) 
+ggpredict(m2, terms = "ed_minimize") %>% plot(add.data = TRUE) + 
+  geom_line(color = "red") +
+labs(x = "Teachers' average score on Minimization of Race Construct (Scaled)", 
+       y = "Teachers' average score on Belief in Deficit Narratives (Scaled)", 
+        title = " Predicted vs Actual values") +
+  theme(axis.title.y = element_text(size = 10)) 
+
+ggpredict(m4, terms = "ed_conscious") %>% plot(add.data = TRUE) + 
+  geom_line(color = "red") +
+labs(x = "Teachers' average score on Race Consciousness Construct (Scaled)", 
+       y = "Teachers' average score on Belief in Deficit Narratives (Scaled)", 
+        title = " Predicted vs Actual values") +
+  theme(axis.title.y = element_text(size = 10)) 
+  
+```
+
+```{r}
+ggsave("filename", 
+       plot = plot_name, 
+       width =, 
+       height =, 
+       units = "in")
+
+```
