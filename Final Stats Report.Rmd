@@ -1,0 +1,454 @@
+---
+title: Relationship between teacher’s racial beliefs in education and their beliefs
+  in deficit narratives
+author: "Ally Cameron"
+date: "2023-04-13"
+output: pdf_document
+header-includes: \usepackage{hanging}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The purpose of this research project is to explore the question: **Do high school math teachers' classroom-related racial beliefs influence their beliefs in deficit narratives?** To answer this question, I will attempt to analyze two estimands: 1) *what is the direct effect of teachers' average score on the minimization of race construct on their average score on the deficit narratives construct*, and 2) *what is the direct effect of teachers' average score on the race conscious construct on their average score on the deficit narratives construct*. More discussion on constructs follows below.\
+
+Researchers have shown that many teachers consciously or unconsciously lower their expectations for minoritized learners, which can contribute to their placement in lower academic tracks (Berry, 2008; Kyburg et al., 2007; Strayhorn, 2010). This lowering of expectations for minoritized learners is usually characterized by teachers' use of racialized deficit narratives. Racialized deficit narratives are defined as viewing minoritized learners and their families as deficient and/or less competent than white students. Deficit narratives in K-12 mathematics education are formed and maintained in schools (Pollack, 2012; Williams et al., 2020), policy decisions (Berry, 2021; Martin, 2009), and existing mathematics education research (Martin, 2009). Within schools, racially minoritized learners are often denigrated as troublemakers (Brown & Donnor, 2011), mathematically inferior (Martin, 2019), and the target of blame for the exclusionary nature of mathematics. When minoritized youth see themselves over-represented in general and remedial classrooms yet underrepresented in advanced STEM courses in their schools, there is a lasting effect on their perception of what a mathematician or scientist looks like and whether they can see themselves as one (Visintainer, 2020). Deficit narratives can have lasting effects on minoritized learners' sense of belonging, as well as how they interact and engage in mathematics spaces.\
+
+The current research aims to quantitatively explore the relationship between teacher's education-related racial beliefs and belief in deficit narratives. The resulting relationship between these beliefs has implications for the perceptions teacher's have towards minoritized students and the strategies they use when engaging students of color. Future research will aim to understand the relationship between deficit narratives and inclusive teaching practices.\
+
+\newpage
+
+## Data and Methods 
+
+**Research Design.** This study uses pilot data from a national survey of secondary mathematics teachers. The survey includes original questions and items from existing surveys, both of which were informed by existing literature, focus group interviews with mathematics teachers, and regular working group meetings. This survey is the first large-scale teacher survey with *race-oriented measures* to investigate mathematics teachers' beliefs, views about minoritized learners and their families, and the range of teaching practices they use in their classroom.\
+
+**Participants.** To recruit participants, first, we randomly selected around 400 traditional public and charter secondary schools from the Common Core of Data, stratified by Black student enrollment quartiles. Next, we compiled a list with the name and email address of all high school mathematics teachers working in these schools using publicly available data sources. Each teacher was sent a personalized invitation to participate in the survey, as well as a \$5 gift card of their choice. We also recruited teachers to participate via open email invitations sent to the listservs of multiple professional associations (e.g., local and state chapters of the National Council of Teachers of Mathematics) and posted to social media (e.g., Twitter, Facebook affinity groups). Our final pilot sample includes 227 high school math teachers, 123 from the random sample, and 88 from the nonrandom sample.\
+
+**Variables.** To analyze the effect of teachers average score on the minimization of race and race consciousness constructs on teacher's average score on the deficit narrative construct I use a generalized linear model (GLM). Below is a diagram illustrating the logic that informs the GLMs for analyzing the relationships between these variables.
+
+![](/Users/allysontcameron/Desktop/Screen%20Shot%202023-04-13%20at%201.33.44%20PM.png) 
+
+The main takeaway from this diagram is that all of the variables in color are confounders, and thus will be controlled for in the model.\
+
+In green are two constructs related to general racial beliefs of teachers (Table 2.2). In orange is a construct measuring teachers' beliefs around racial test gaps (Table 2.4). In black, educational race beliefs (Table 2.1) and deficit narratives (Table 2.3) are also informed by constructs. All of these variables from constructs are scaled to account for potential multicolliniearity and the difference in units of the scales. The constructs were determined using the principal-component factor method for an exploratory factor analysis. Factor loadings above .55 were included within each construct. The tables illustrating the variables and factor loadings can be found in the Appendix.\
+
+In dark blue are the demographic variables that have similar causal paths. Degree is capturing an individual's highest degree attainment and is measured with six categories (i.e., 0 = no college degree, 1 = Associate's degree, 2 = Bachelor's Degree, 3 = Master's degree, 4 = Education Specialist Degree, 5 = high-level professional degree). Race is measured with seven categories (i.e., 1 = White Non-Latinx, 2 = Black, 3 = American Indian, 4 = Asian, 5 = Pacific Islander, 6 = Mixed-Race, 7 = White Latinx). Latinx is a binary variable, where one is individuals of Latinx ethnicity. However, after assessing the variance inflation factor (VIF) for all variable, the VIF for Latinx was greater than 6 and was dropped from the model. When the VIF is over 5, there is a stronger risk for multicollinearity which would negatively impact my results. In purple is gender, which is also a binary variable where one is females and zero is males.\
+
+In blue is teachers' political ideology. Ideology is measured with seven categories (i.e., 1 = extremely liberal, 2 = somewhat liberal, 3 - lean liberal, 4 = in the middle, 5 = lean conservative, 6 = somewhat conservative, 7 = extremely conservative). In red is the region teacher's grew up in. This is measured with 5 categories (i.e., 1 = Northwest, 2 = Midwest, 3 = South, 4 = West, 5 = Outside of the U.S.).\
+
+In pink is two binary variables that also have similar causal paths. These variables measure whether teachers took a race course in either graduate school or undergraduate school. Both of these variables were coded where one means that teacher's did take a race course in either of these settings.
+
+## Results 
+
+Before running models, I assessed the relationship between the teachers average score for each construct on educational race beliefs and their average score on the construct on deficit narrative beliefs. These graphs use the non-scaled data to make the discussion of these graphs easier to interpret in the context of average scores for each construct; however, within the model the variables that use constructs are scaled so that the mean is equal to zero.\
+
+\newpage
+
+**Minimization of Race and Belief in Deficit Narratives.** First, looking at the relationship between minimization of race and belief in deficit narratives. We can interpret the relationship as: a) a positive linear relationship, or b) a non-linear relationship where the positive relationship begins to slow around the average minimization of race construct score of 4. \
+
+![](/Users/allysontcameron/Desktop/Screen Shot 2023-04-13 at 2.38.00 PM.png)
+
+Model 1: If we assume the first relationship (a), the model can be expressed in mathematical terms as:\
+
+\begin{equation*}
+\begin{split}
+Deficit = \beta_0 + \beta_1 * edu.minimization + \beta_2 * gen.evasive + \beta_3 * gen.CRT +
+\beta_4 * belief.test.gaps + \beta_5 * ideology \\ 
++ \beta_6 * gender + \beta_7 * grad.racecourse + \beta_8 * college.racecourse \\ 
++ \beta_9 * degree + \beta_{10} * race + \beta_{11} * regionchild + \epsilon
+\end{split}
+\end{equation*}
+
+Model 2: If we assume the second relationship (b), the model can be expresssed in mathematical terms as:
+\begin{equation*}
+\begin{split}
+Deficit = \beta_0 + \beta_1 * edu.minimization +  \beta_2 * edu.minimization^2 + \beta_3 * gen.evasive + \beta_4 * gen.CRT
+\\ 
++ \beta_5 * belief.test.gaps + \beta_6 * ideology + \beta_7 * gender + \beta_8 * grad.racecourse + \\ 
+ \beta_9 * college.racecourse + \beta_10 * degree + \beta_{11} * race + \beta_{12} * regionchild + \epsilon
+\end{split}
+\end{equation*}
+
+The $\epsilon$ in each equation is the error term. \
+
+\newpage
+
+**Race Consciousness and Belief in Deficit Narratives.**  Next, looking at the relationship between race consciousness and belief in deficit narratives. We can interpret the relationship as: a) a negative linear relationship, or b) a non-linear relationship where the negative relationship begins slowly and picks up around the average race consciousness score of 4. \
+
+![](/Users/allysontcameron/Desktop/Screen Shot 2023-04-13 at 2.38.41 PM.png)
+
+Model 3: If we assume the first relationship (a), the model can be expressed in mathematical terms as:\
+\begin{equation*}
+\begin{split}
+Deficit = \beta_0 + \beta_1 * edu.conscious + \beta_2 * gen.evasive + \beta_3 * gen.CRT +
+\beta_4 * belief.test.gaps + \beta_5 * ideology \\ 
++ \beta_6 * gender + \beta_7 * grad.racecourse + \beta_8 * college.racecourse \\ 
++ \beta_9 * degree + \beta_{10} * race + \beta_{11} * regionchild + \epsilon
+\end{split}
+\end{equation*}
+
+Model 4: If we assume the second relationship (b), the model can be expresssed in mathematical terms as:\
+\begin{equation*}
+\begin{split}
+Deficit = \beta_0 + \beta_1 * edu.conscious +  \beta_2 * edu.conscious^2 + \beta_3 * gen.evasive + \beta_4 * gen.CRT
+\\ 
++ \beta_5 * belief.test.gaps + \beta_6 * ideology + \beta_7 * gender + \beta_8 * grad.racecourse + \\ 
+ \beta_9 * college.racecourse + \beta_10 * degree + \beta_{11} * race + \beta_{12} * regionchild + \epsilon
+\end{split}
+\end{equation*}
+
+Again, the $\epsilon$ in each equation is the error term. \
+
+\newpage
+
+**Model Comparison.** To compare the models for each education-related race belief construct and the deficit narrative beliefs construct we will assess their goodness-of-fit using Bayesian Information Criterion (BIC). A model with a lower the BIC is preferred because it provides a better balance between model fit and model complexity. Below is a table that shows the BIC for each model. \
+
+| Model                 |   BIC  |
+|-----------------------|:------:|
+| M1: ed_minimize       | 522.23 |
+| M2: I(ed_minimize^2)  | 519.83 |
+| M3: ed_conscious      | 533.75 |
+| M4: I(ed_conscious^2) | 525.80 |
+
+Based on the BIC values for each model, I chose to use the models that use the squared term (model 2 and model 4) for my analysis and interpretation.\
+
+**Results from the Model 2.** Model 2 estimates the direct effect of teachers' average score on the minimization of race construct on their average score on the deficit narratives construct. Below, on the right, is an abridged version of the model summary that shows the model's estimates of this effect. Since there is a squared term, interpreting this model in words is harder. A loose interpretation of this summary is: a one standard deviation increase in teacher's average score on minimization of race construct results in an increase (in standard deviations) from the mean of the average score on the deficit narratives construct; however, this rate of change is decreasing as we get farther away from the mean. We can see this relationship visually in the graph on the left.\
+
+![](/Users/allysontcameron/Desktop/Screen Shot 2023-04-13 at 3.13.29 PM.png)
+
+\newpage
+
+**Results from the Model 4.** Model 4 estimates the direct effect of teachers' average score on the race conscious construct on their average score on the deficit narratives construct. Below, on the right, is an abridged version of the model summary that shows the model's estimates of this effect. Since there is a squared term, interpreting this model in words is harder. A loose interpretation of this summary is: a one standard deviation increase in teacher's average score on race conscious construct from the mean results in a decrease (in standard deviations) from the mean of the average score on the deficit narratives construct; however, this negative rate of change decreases the more standard deviations we go from the mean (for the negative values). We can see this relationship in the graph on the left.\
+
+![](/Users/allysontcameron/Desktop/Screen Shot 2023-04-13 at 3.16.04 PM.png)
+
+# Discussion and conclusion 
+
+While the increase in belief in deficit narratives for the minimization of race construct  and the decrease in belief in deficit narratives of the race conscious construct, both illustrated by the non-squared coefficient are unsurprising. What is more surprising is that these relationships seem *non-linear* in the first place. However, this may be due to the lack of data for the lower average scores for the race conscious construct and the lack of data for the high average scores for the minimization of race construct. In future work, it would be nice to assess this relationship with spline models to better understand the relationship. However, after more data is collected, rerunning these models may also better add to our understaning of the relationship between education-related racial beliefs and beliefs in deficit narratives.\
+
+Additionally, I am making a large assumption that the relationship between the education-related race constructs and the deficit narrative constructs are **not** due to a larger "symptom" such as political ideology in our currently polarized environments leading people of certain ideologies to follow certain scripts and beliefs. However, I believe that assessing the relationship between these beliefs is necessary because of the implications deficit beliefs have on teaching practices. Additionally, in future research I plan to access the relationship between deficit narratives and inclusive teaching practices to strengthen this claim. 
+
+\newpage
+
+# References\
+
+\begin{hangparas}{0.5in}{1}
+Berry, R. Q. (2008). Access to upper-level mathematics: The stories of successful African American middle school boys. \textit{Journal for Research in Mathematics Education}, 39(5), 464–488. http://www.jstor.org/stable/40539311
+
+Berry, R. Q. (2021). 2021 Founders Lecture: Examining mathematics education reforms’ impact on historically excluded learners. \textit{Investigations in Mathematics Learning}, 13(3), 153-166. https://doi.org/10.1080/19477503.2021.1938870
+
+Brown, A. L., and Donnor, J. K. (2013). Toward a new narrative on Black males, education, and public policy. In \textit{The Education of Black Males in a 'Post-Racial' World} (pp. 25-40). Routledge. https://doi.org/10.1080/13613324.2011.531978
+
+Kyburg, R. M., Hertberg-Davis, H., and Callahan, C. M. (2007). Advanced Placement and International Baccalaureate programs: Optimal learning environments for talented minorities?. \textit{Journal of advanced academics}, 18(2), 172-215. https://doi.org/10.4219/jaa-2007-357
+
+Pollack, T. M. (2012). The miseducation of a beginning teacher: One educator's critical reflections on the functions and power of deficit narratives. \textit{Multicultural Perspectives}, 14(2), 93-98. https://doi.org/10.1080/15210960.2012.673318
+
+Strayhorn, T. L. (2010). When race and gender collide: Social and cultural capital's influence on the academic achievement of African American and Latino males. \textit{The Review of Higher Education}, 33(3), 307-332. http://doi.org/10.1353/rhe.0.0147
+
+Visintainer, T. (2020). “I think at first glance people would not expect me to be interested in science”: Exploring the racialized science experiences of high school students of color. \textit{Journal of Research in Science Teaching}, 57(3), 393-422. https://doi.org/10.1002/tea.21597
+
+Williams, K. L., Coles, J. A., and Reynolds, P. (2020). (Re) creating the script: A framework of agency, accountability, and resisting deficit depictions of black students in P-20 education. \textit{Journal of Negro Education}, 89(3), 249-266.
+\end{hangparas}
+
+
+\newpage
+
+# Appendix\
+
+### Factor Loadings for Variables based on Constructs
+![](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/Education Race Attiudes.png)
+\newpage
+![](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/General Race Attitudes.png)
+\newpage
+
+![](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/teacher belief factor.png)
+\newpage
+![](/Users/allysontcameron/Library/CloudStorage/OneDrive-DukeUniversity/2023/spring 2023/stats/final project info/Q255.png)
+
+### Code
+
+Here is my data where I manipulated variables for the models.
+```{r, eval = FALSE}
+library(haven)
+library(tidyverse)
+library(dplyr)
+d1 <- read_dta(paste0("/Users/allysontcameron/Library/CloudStorage/OneDrive-",
+               "DukeUniversity/2023/spring 2023/stats/final project info/",
+               "NSHsMT Pilot Wave 1 Restricted Data Clean.dta") %>% 
+  haven::zap_labels()
+
+d1 <- d1 %>% 
+  select(caseid ,gender, latinx, race_1, race_2, race_3, race_4, race_5, 
+         degree_1, degree_2, degree_3, degree_4, degree_5, degree_6, 
+         collegerace_1, collegerace_2, collegerace_3, collegerace_4, 
+         collegerace_5, racebelief1_1, racebelief1_2, racebelief1_3, 
+         racebelief1_4, racebelief1_5, racebelief2_1, racebelief2_2, 
+         racebelief2_3, racebelief2_4, racebelief2_5, racialbeliefs1_1, 
+         racialbeliefs1_2, racialbeliefs1_3, racialbeliefs1_4, 
+         racialbeliefs1_5, racialbeliefs2_1, racialbeliefs2_2, 
+         racialbeliefs2_3, racialbeliefs2_4, racialbeliefs2_5, ideology, 
+         gradrace, teacherbeliefs1_1, teacherbeliefs1_2, teacherbeliefs1_3,
+         teacherbeliefs1_4, teacherbeliefs1_5, teacherbeliefs2_1, 
+         teacherbeliefs2_2, teacherbeliefs2_3, teacherbeliefs2_4, 
+         teacherbeliefs2_5, teacherbeliefs3_1, teacherbeliefs3_2, 
+         teacherbeliefs3_3, teacherbeliefs3_4, q255_1, q255_2, q255_3, 
+         q255_4, q255_5, regionchild) %>%
+  mutate(latinx = if_else(latinx == 2, 0L, 1L))
+
+# create multi-race variable
+d1 <- d1 %>% 
+  mutate(race_6 = case_when(
+  race_1 == 1 & race_2 == 1 & race_3 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_3 == 1 & race_4 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_3 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_3 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_2 == 1 & race_3 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_3 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_4 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_3 == 1 & race_4 == 1 ~ 1,
+  race_1 == 1 & race_3 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_2 == 1 & race_3 == 1 & race_4 == 1 ~ 1,
+  race_2 == 1 & race_3 == 1 & race_5 == 1 ~ 1,
+  race_2 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_3 == 1 & race_4 == 1 & race_5 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 ~ 1,
+  race_1 == 1 & race_3 == 1 ~ 1,
+  race_1 == 1 & race_2 == 1 ~ 1, 
+  race_1 == 1 & race_3 == 1 ~ 1, 
+  race_1 == 1 & race_4 == 1 ~ 1, 
+  race_1 == 1 & race_5 == 1 ~ 1, 
+  race_2 == 1 & race_3 == 1 ~ 1, 
+  race_2 == 1 & race_4 == 1 ~ 1, 
+  race_2 == 1 & race_5 == 1 ~ 1, 
+  race_3 == 1 & race_4 == 1 ~ 1, 
+  race_3 == 1 & race_5 == 1 ~ 1, 
+  race_4 == 1 & race_5 == 1 ~ 1, 
+  TRUE ~ 0))
+#degree variable
+d1 <- d1 %>% 
+  mutate(degree = case_when(
+    degree_1 == 1 ~ 1, 
+    degree_2 == 1 ~ 2, 
+    degree_3 == 1 ~ 3, 
+    degree_4 == 1 ~ 4, 
+    degree_5 == 1 ~ 5, 
+    degree_6 == 1 ~ 0
+  ))
+# race course variable
+d1 <- d1 %>% 
+  mutate(collegerace = case_when(
+    collegerace_1 == 1 ~ 1, 
+    collegerace_2 == 1 ~ 1, 
+    collegerace_3 == 1 ~ 1, 
+    collegerace_4 == 1 ~ 1, 
+    collegerace_5 == 1 ~ 0))
+# finishing race variable
+d2 <- d1 %>% 
+  filter(race_6 != 1) %>% 
+  mutate(race_7 = if_else(latinx == 1 & race_1 == 1 & race_2 != 1 & 
+                            race_3 != 1 & race_4 != 1 & race_5 != 1, 1L, 0L), 
+         race_1a = case_when( 
+           race_7 == 1 ~ 0, 
+           race_7 == 0 & race_1 == 1 ~ 1,
+           TRUE ~ race_1))  
+  # adding all race variables together in one variable a
+d4 <- d2 %>% 
+  mutate(race = case_when(
+    race_1a == 1 ~ 1, # white, non-Hispanic
+    race_2 == 1 ~ 2, 
+    race_3 == 1 ~ 3, 
+    race_4 == 1 ~ 4, 
+    race_5 == 1 ~ 5, 
+    race_7 == 1 ~ 7)) # Hispanic, white
+d3 <- d1 %>% 
+  filter(race_6 ==1) %>% 
+  mutate(race = case_when(
+    race_6 == 1 ~ 6))
+
+# finalizing most messed with variables
+d <- bind_rows( d3, d4) %>% 
+  select(caseid, gender, latinx, race, degree, collegerace, ideology, 
+         racebelief1_2, racebelief1_1, racebelief1_3, racebelief1_4, 
+         racebelief1_5, racebelief2_1, racebelief2_2, racebelief2_3, 
+         racebelief2_4, racebelief2_5, racialbeliefs1_1, racialbeliefs1_2, 
+         racialbeliefs1_3, racialbeliefs1_4, racialbeliefs1_5, 
+         racialbeliefs2_1, racialbeliefs2_2, racialbeliefs2_3, 
+         racialbeliefs2_4, racialbeliefs2_5, gradrace, teacherbeliefs1_1, 
+         teacherbeliefs1_2, teacherbeliefs1_3,
+         teacherbeliefs1_4, teacherbeliefs1_5, teacherbeliefs2_1, 
+         teacherbeliefs2_2, teacherbeliefs2_3, teacherbeliefs2_4, 
+         teacherbeliefs2_5, teacherbeliefs3_1, teacherbeliefs3_2, 
+         teacherbeliefs3_3, teacherbeliefs3_4, q255_1, q255_2, q255_3, 
+         q255_4, q255_5, regionchild)
+
+```
+
+This is the variable manipulation for construct variables. 
+
+```{r, eval = FALSE}
+  # first, let's reverse scales for negative values in construct
+d <- d %>%
+  mutate(racebelief1_1r = case_when(
+    racebelief1_1 == 6 ~ 1, 
+    racebelief1_1 == 5 ~ 2,
+    racebelief1_1 == 4 ~ 3, 
+    racebelief1_1 == 3 ~ 4, 
+    racebelief1_1 == 2 ~ 5, 
+    racebelief1_1 == 1 ~ 6
+    ), 
+    racebelief1_2r = case_when(
+      racebelief1_2 == 6 ~ 1, 
+    racebelief1_2 == 5 ~ 2,
+    racebelief1_2 == 4 ~ 3, 
+    racebelief1_2 == 3 ~ 4, 
+    racebelief1_2 == 2 ~ 5, 
+    racebelief1_2 == 1 ~ 6
+    )) 
+
+# create new variables with the average of the variables within each construct
+# this should give us each teacher's average score for each construct. 
+d <- d %>% 
+  mutate(unscaled_ed_minimize = rowMeans(d[, c("racebelief1_3", 
+                                               "racebelief1_4",
+                                               "racebelief1_5")]), 
+         ed_minimize = unscaled_ed_minimize %>% 
+           scale() %>%
+           as.vector(), 
+         unscaled_ed_conscious = rowMeans(d[, c("racebelief1_1r", 
+                                                "racebelief1_2r",
+                                                "racebelief2_2", 
+                                                "racebelief2_3")]), 
+         ed_conscious = unscaled_ed_conscious %>% 
+                                    scale() %>% 
+           as.vector(), 
+         # adjustments
+         gen_evasive =  rowMeans(d[, c("racialbeliefs1_1", "racialbeliefs1_2",
+                                        "racialbeliefs1_4",
+                                        "racialbeliefs1_5","racialbeliefs2_2", 
+                                        "racialbeliefs2_5" )]) %>%  
+                                   scale () %>% 
+                                   as.vector(), 
+         gen_CRT = rowMeans(d[, c("racialbeliefs1_3", "racialbeliefs2_3",
+                                   "racialbeliefs2_4")]) %>% scale() %>% 
+                              as.vector(), 
+         poc_math = rowMeans(d[, c("q255_1", "q255_2", "q255_3", "q255_4",
+                                   "q255_5")]) %>%  
+           scale() %>% 
+           as.vector()) %>% 
+  select(caseid, female, latinx, race, degree, collegerace, ideology, gradrace,
+         teacherbeliefs1_1, teacherbeliefs1_2, teacherbeliefs1_3, 
+         teacherbeliefs1_4, 
+         teacherbeliefs1_5, teacherbeliefs2_1, teacherbeliefs2_2,
+         teacherbeliefs2_3, teacherbeliefs2_4, teacherbeliefs2_5, 
+         teacherbeliefs3_1, teacherbeliefs3_2,teacherbeliefs3_3,
+         teacherbeliefs3_4, ed_minimize, ed_conscious, gen_evasive, 
+         gen_CRT, poc_math, regionchild, unscaled_ed_minimize,
+         unscaled_ed_conscious) %>% 
+  drop_na()
+# outcome variable
+
+d <- d %>%
+  mutate(unscaled_deficit = rowMeans(d[, c("teacherbeliefs1_4", 
+                                           "teacherbeliefs1_5", 
+                                           "teacherbeliefs2_2", 
+                                           "teacherbeliefs2_3",
+                                           "teacherbeliefs2_4",
+                                           "teacherbeliefs2_5" )]), 
+         deficit = unscaled_deficit %>% 
+           scale () %>%  as.vector ()) %>% 
+  select(caseid, female, latinx, race, degree, collegerace, ideology, gradrace,
+         ed_minimize, ed_conscious, gen_evasive, gen_CRT, deficit,
+         poc_math, regionchild, unscaled_ed_minimize, unscaled_ed_conscious, 
+         unscaled_deficit) %>%
+  # also making categorical variables factors
+   mutate(degree = as.factor(degree), 
+         race = as.factor(race), 
+         ideology = as.factor(ideology), 
+         female = as.factor(female), 
+         latinx = as.factor(latinx), 
+         collegerace = as.factor(collegerace), 
+         gradrace = as.factor(gradrace), 
+         regionchild = as.factor(regionchild))
+
+```
+
+Here is my code for creating the models. 
+
+```{r, eval = FALSE}
+# models for minimization of race mindset construct
+m1 <- glm(deficit ~ ed_minimize + gen_evasive + gen_CRT + poc_math + 
+            ideology + female + gradrace + collegerace + degree + race  +
+             regionchild, 
+          data = d, 
+          family = gaussian(link = "identity"))
+
+m2 <- glm(deficit ~ ed_minimize + I(ed_minimize^2) + gen_evasive + 
+            gen_CRT + poc_math + ideology + female + gradrace + collegerace +
+            degree + race  + regionchild, 
+          data = d, 
+          family = gaussian(link = "identity"))
+# models for race conscious mindset construct
+
+m3 <- glm(deficit ~  ed_conscious + gen_evasive + gen_CRT + poc_math +
+          ideology + female + gradrace + collegerace + degree + race +
+           regionchild,
+          data = d, 
+          family = gaussian(link = "identity"))
+m4 <- glm(deficit ~ ed_conscious + I(ed_conscious^2) + gen_evasive +
+          gen_CRT + poc_math + ideology + female + gradrace + collegerace + 
+            degree + race + regionchild,
+          data = d, 
+          family = gaussian(link = "identity"))
+
+
+```
+
+Here is my assessment of multicollinearity. 
+```{r, eval = FALSE}
+library(car)
+# minimization of race
+vif(m2)
+# race consciousness
+vif(m4)
+```
+
+Here is my model comparison. 
+```{r, eval = FALSE}
+# model comparison for minimization of race mindset construct
+BIC(m1, m2)
+
+# model comparison for race conscious mindset construct
+BIC(m3, m4)
+```
+
+Lastly, here is the code I used to interpret the models and to visualize the predicted data.
+
+```{r, eval = FALSE}
+# model summaries
+modelsummary::msummary(m2, stars = TRUE, 
+                       coef_omit = "^(?!.*Intercept|.*ed_minimize)")
+modelsummary::msummary(m4, stars = TRUE, 
+                       coef_omit = "^(?!.*Intercept|.*ed_conscious)")
+
+# visualization of predictions
+library(ggeffects) 
+theme_set(theme_light(base_family = "Avenir"))
+# for minimization of race
+ggpredict(m2, terms = "ed_minimize") %>% plot(add.data = TRUE) + 
+  geom_line(color = "red") +
+labs(x = "Teachers' average score on Minimization of Race Construct (Scaled)", 
+       y = "Teachers' average score on Belief in Deficit Narratives (Scaled)", 
+        title = " Predicted vs Actual values") +
+  theme(axis.title.y = element_text(size = 10)) 
+# for race consciousness
+ggpredict(m4, terms = "ed_conscious") %>% plot(add.data = TRUE) + 
+  geom_line(color = "red") +
+labs(x = "Teachers' average score on Race Consciousness Construct (Scaled)", 
+       y = "Teachers' average score on Belief in Deficit Narratives (Scaled)", 
+        title = " Predicted vs Actual values") +
+  theme(axis.title.y = element_text(size = 10)) 
+```
